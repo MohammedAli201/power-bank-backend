@@ -1,0 +1,7 @@
+require('dotenv').config();
+
+module.exports = {
+  apiKey: process.env.API_KEY_POWER_BANK, // Correct the typo in the key
+  DATABASE: process.env.DATABASE,         // Correct the typo in the key
+  DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
+};
