@@ -1,0 +1,4 @@
+{
+	"testUrl": "https://sandbox.waafipay.net/asm",
+	"prodUrl": "https://api.waafipay.net/asm"
+}
