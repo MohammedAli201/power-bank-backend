@@ -1,3 +1,5 @@
+// controllers/paymentController.js
+
 const config = require('../config/config');
 const WaafiPay = require('waafipay-sdk-node');
 const waafipay = new WaafiPay.API(
@@ -6,6 +8,17 @@ const waafipay = new WaafiPay.API(
   config.MERCHAT_ID, 
   { testMode: true }
 );
+
+const preAuthorizeCancel = (params) => {
+  return new Promise((resolve, reject) => {
+    waafipay.preAuthorizeCancel(params, (error, body) => {
+      if (error) {
+        return reject(error);
+      }
+      resolve(body);
+    });
+  });
+};
 
 const preAuthorize = (params) => {
   return new Promise((resolve, reject) => {
@@ -47,8 +60,6 @@ exports.evc_paymentRequest = async (req, res) => {
       description: description,
     });
 
-    console.log('WaafiPay PreAuthorize API response:', preAuthResult);
-
     const transactionId = preAuthResult.params?.transactionId;
     if (!transactionId) {
       throw new Error('TransactionId is not provided in the preAuthorize response');
@@ -59,7 +70,6 @@ exports.evc_paymentRequest = async (req, res) => {
       description: 'committed',
     });
 
-    console.log('WaafiPay PreAuthorize Commit API response:', commitResult);
     res.status(200).json(commitResult);
   } catch (error) {
     console.error('Error during WaafiPay API call:', error);
@@ -67,45 +77,38 @@ exports.evc_paymentRequest = async (req, res) => {
   }
 };
 
-exports.createPayment = async (req, res, next) => {
-    console.log(req.body);
-//   try {
-//     const newPayment = await Payment.create(req.body);
-//     res.status(201).json({
-//       status: 'success',
-//       data: {
-//         payment: newPayment,
-//       },
-//     });
-//   } catch (err) {
-//     console.error('Error creating payment:', err); // Log the error
-//     res.status(500).json({
-//       status: 'error',
-//       message: 'Internal Server Error', // Return a generic message to client
-//     });
-//   }
+exports.cancelPayment = async (req, res, next) => {
+  try {
+    const { transactionId } = req.body;
+    if (!transactionId) {
+      return res.status(400).json({ message: 'Missing required parameters' });
+    }
+    const cancelResult = await preAuthorizeCancel({
+      transactionId: transactionId,
+      description: 'cancelled',
+    });
+    res.status(200).json(cancelResult);
+  } catch (error) {
+    console.error('Error during WaafiPay API call:', error);
+    res.status(400).json({ message: 'Payment request failed', error: error.message });
+  }
 };
 
-
-
+exports.createPayment = async (req, res, next) => {
+  console.log(req.body);
+  // Implementation here
+};
 
 exports.unlock = async (req, res, next) => {
-    try {
-        
-        
-        res.status(201).json({
-            status: 'Unlocking is successful',
-            
-        });
-    }
-    catch (err) {
-        console.error('Error creating payment:', err); // Log the error
-        res.status(500).json({
-            status: 'error',
-            message: 'Internal Server Error', // Return a generic message to client
-        });
-    }
-}
-
-
-// router/paymentRouter.js
+  try {
+    res.status(201).json({
+      status: 'Unlocking is successful',
+    });
+  } catch (err) {
+    console.error('Error during unlocking:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error',
+    });
+  }
+};

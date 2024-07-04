@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-const paymentRouter = require('./router/PaymentRouter');
+const paymentRouter = require('./router/paymentRouter');
 const powerBankRouter = require('./router/powerBankRouter');
 
 // Middleware to log request time
@@ -13,12 +13,12 @@ app.use((req, res, next) => {
 // Middleware to parse JSON bodies
 app.use(express.json());
 app.use(cors());
+
 // Route setup for power bank-related endpoints
 app.use('/api/v1/stations', powerBankRouter);
 
 // Route setup for payment-related endpoints
 app.use('/api/v1/stations/payments', paymentRouter);
-// app.use('/api/v1/stations/evc_paymentRequest', paymentRouter);
 
 // 404 Not Found middleware for undefined routes
 app.use((req, res) => {
