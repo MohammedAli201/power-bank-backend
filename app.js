@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors');
 const paymentRouter = require('./router/paymentRouter');
 const powerBankRouter = require('./router/powerBankRouter');
+const videoPlayerRouter = require('./controller/videoPlayerController');
 
 // Middleware to log request time
 app.use((req, res, next) => {
@@ -19,12 +20,12 @@ app.use('/api/v1/stations', powerBankRouter);
 
 // Route setup for payment-related endpoints
 app.use('/api/v1/stations/payments', paymentRouter);
+app.use('/api/v1/stations/video', videoPlayerRouter);
 
-// 404 Not Found middleware for undefined routes
-app.use((req, res) => {
+app.all('*', (req, res, next) => {
     res.status(404).json({
-        status: 'error',
-        message: 'Not Found'
+        status: 'fail',
+        message: `Can't find ${req.originalUrl} on this server!`
     });
 });
 
