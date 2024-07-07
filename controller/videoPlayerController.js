@@ -1,20 +1,24 @@
-const express = require('express');
-const multer = require('multer');
-const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
+const fetch = require('node-fetch');
 const config = require('../config/config');
 const FormData = require('form-data');
 
 const URL = "https://openapi.heycharge.global/v1/station/setScreenInfo";
 const API_KEY = config.apiKey;
 
-const upload = multer({ dest: 'uploads/' });
-
-const router = express.Router();
-
-router.post('/upload', upload.single('video'), async (req, res) => {
+exports.uploadVideo = async (req, res) => {
     const { imei } = req.body;
+    console.log('IMEI:', imei);
+
+    if (!imei) {
+        return res.status(400).json({ error: 'IMEI is required' });
+    }
+
+    if (!req.file) {
+        return res.status(400).json({ error: 'No video file uploaded' });
+    }
+
     const videoPath = path.join(__dirname, '../uploads', req.file.filename);
 
     try {
@@ -37,12 +41,13 @@ router.post('/upload', upload.single('video'), async (req, res) => {
         };
 
         const response = await fetch(URL, options);
+        console.log('API Service Response:', response);
 
         if (!response.ok) {
             let errorMessage = `HTTP error! Status: ${response.status}`;
             if (response.status === 402) {
                 errorMessage = 'Payment required: Please check your subscription or payment plan.';
-            } else if (response.status === 400) {
+            } else if (response.status === 400 || response.code === 400 || response.status(400)) {
                 const errorData = await response.json();
                 errorMessage = `Bad Request: ${errorData.message || response.statusText}`;
             }
@@ -65,14 +70,13 @@ router.post('/upload', upload.single('video'), async (req, res) => {
                 time: new Date().toISOString(),
                 success: true,
                 imei: imei,
+                res: response
             });
         }
     } catch (error) {
-        console.error('Error with API request:', error);
+        console.error('Error with API request:', error.message || error);
         return res.status(500).json({ error: 'Internal Server Error' });
     } finally {
         fs.unlinkSync(videoPath); // Clean up the uploaded file from the server
     }
-});
-
-module.exports = router;
+};

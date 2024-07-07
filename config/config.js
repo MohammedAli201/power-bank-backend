@@ -7,6 +7,8 @@ module.exports = {
   MERCHAT_ID: process.env.MERCHANTUID,
   APIUSERID: process.env.APIUSERID,
   API_KEY: process.env.API_KEY,
+  TOKEN_SECRET: process.env.TOKEN_SECRET,
+  JWT_EXPIRATION: process.env.JWT_EXPIRATION
 
 
 };
