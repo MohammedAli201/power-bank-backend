@@ -13,7 +13,6 @@ const powerBankRouter = require('./router/PowerBankRouter');
 const videoPlayerRouter = require('./router/videoRouter');
 const userRouter = require('./router/userRouter');
 
-// Initialize the Express application
 const app = express();
 
 // Middleware for logging requests in development environment
