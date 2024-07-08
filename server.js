@@ -19,6 +19,9 @@ mongoose
     useUnifiedTopology: true,
     ssl: true, // Ensure SSL is enabled
     tlsAllowInvalidCertificates: true, // For testing purposes
+    serverSelectionTimeoutMS: 5000, // Increase timeout settings
+    socketTimeoutMS: 45000,
+    connectTimeoutMS: 30000
   })
   .then(() => console.log('DB connection successful!'))
   .catch((err) => {
