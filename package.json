@@ -1,12 +1,12 @@
 {
   "name": "power-bank-backend",
   "version": "1.0.0",
-  "description": "This will be the backend of power bank application, which we are utillizing the react js as front-end",
+  "description": "This will be the backend of power bank application, which we are utilizing the react js as front-end",
   "main": "app.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "start:prod": "NODE_ENV=production nodemon server.js",
+    "start:prod": "NODE_ENV=production node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "debug": "ndb server.js"
   },
@@ -30,7 +30,10 @@
     "validator": "^13.12.0",
     "waafipay-sdk-node": "^0.1.6"
   },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  },
   "engines": {
-    "node": ">=14.0.0"
+    "node": "16.x"
   }
 }
