@@ -18,21 +18,30 @@ console.log("Database URI: ", process.env.DATABASE);
 const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
 
 // Mongoose connection setup
-mongoose
-  .connect(DB, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    ssl: true, // Ensure SSL is enabled
-    tlsAllowInvalidCertificates: true, // For testing purposes
-    serverSelectionTimeoutMS: 5000, // Increase timeout settings
-    socketTimeoutMS: 45000,
-    connectTimeoutMS: 30000
-  })
-  .then(() => console.log('DB connection successful!'))
-  .catch((err) => {
-    console.error('DB connection error:', err.message);
-    console.error('Full error details:', err);
-  });
+mongoose.connect(DB, {
+  // These options are now defaults and can be omitted
+  // useNewUrlParser: true, 
+  // useUnifiedTopology: true
+}).then(() => {
+  console.log('Connected to the database');
+}).catch((error) => {
+  console.error('Error connecting to the database', error);
+});
+// mongoose
+//   .connect(DB, {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+//     ssl: true, // Ensure SSL is enabled
+//     tlsAllowInvalidCertificates: true, // For testing purposes
+//     serverSelectionTimeoutMS: 5000, // Increase timeout settings
+//     socketTimeoutMS: 45000,
+//     connectTimeoutMS: 30000
+//   })
+//   .then(() => console.log('DB connection successful!'))
+//   .catch((err) => {
+//     console.error('DB connection error:', err.message);
+//     console.error('Full error details:', err);
+//   });
 
 const port = process.env.PORT || 9000;
 app.listen(port, () => {
