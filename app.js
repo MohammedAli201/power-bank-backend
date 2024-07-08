@@ -6,6 +6,8 @@ const cors = require('cors');
 const compression = require('compression');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
+const mongoSanitize = require('express-mongo-sanitize');
+// Data sanitization against NoSQL query injection
 
 // Import routers
 const paymentRouter = require('./router/PaymentRouter');
@@ -14,7 +16,7 @@ const videoPlayerRouter = require('./router/videoRouter');
 const userRouter = require('./router/userRouter');
 
 const app = express();
-
+app.use(mongoSanitize());
 // Middleware for logging requests in development environment
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
