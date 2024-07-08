@@ -82,6 +82,7 @@ app.use((err, req, res, next) => {
         status: 'error',
         message: err.message
     });
+    next();
 });
 
 // Export the Express application
