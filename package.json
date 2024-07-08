@@ -4,7 +4,9 @@
   "description": "This will be the backend of power bank application, which we are utillizing the react js as front-end",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon server.js",
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "start:prod": "NODE_ENV=production nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "debug": "ndb server.js"
   },
@@ -27,5 +29,8 @@
     "node-fetch": "^2.7.0",
     "validator": "^13.12.0",
     "waafipay-sdk-node": "^0.1.6"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
