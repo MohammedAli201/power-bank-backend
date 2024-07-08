@@ -69,10 +69,11 @@ exports.forUnclockSlotsById = async (req, res) => {
     const { stationId } = params;
     const apiKey = config.apiKey;
     console.warn('API Key:', apiKey);
-    const { slot_id } = body;
-    console.log('Slot ID:', slot_id);
+    // const { slot_id } = body;
+    // console.log('Slot ID:', slot_id);
 
     const targetUrl = `${URL}${stationId}/forceUnlock`;
+    console.log('Target URL:', targetUrl);
 
     try {
         const formData = new URLSearchParams(body).toString();
