@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 // const config = require('../config/config');
 const dotenv = require('dotenv');// dotenv.config({ path: './config.env' });
-dotenv.config({ path: './env' });
+dotenv.config();
 
 
 exports.SingUp = async (req, res) => {
