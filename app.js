@@ -8,8 +8,8 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 
 // Import routers
-const paymentRouter = require('./router/paymentRouter');
-const powerBankRouter = require('./router/powerBankRouter');
+const paymentRouter = require('./router/PaymentRouter');
+const powerBankRouter = require('./router/PowerBankRouter');
 const videoPlayerRouter = require('./router/videoRouter');
 const userRouter = require('./router/userRouter');
 
