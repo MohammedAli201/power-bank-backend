@@ -1,3 +1,57 @@
+// const mongoose = require('mongoose');
+// const dotenv = require('dotenv');
+
+// // Load environment variables from .env file
+// dotenv.config();
+
+// const app = require('./app');
+
+// // Handle uncaught exceptions
+// process.on('uncaughtException', err => {
+//   console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+//   console.error(err.name, err.message);
+//   process.exit(1);
+// });
+
+// // Debugging: Print out the environment variables
+// // Ensure to remove or comment these lines in production
+// console.log("Database Password: ", process.env.DATABASE_PASSWORD);
+// console.log("Database URI: ", process.env.DATABASE);
+
+// // Replace placeholder with actual password in the database URI
+// const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
+
+// // Mongoose connection setup
+// mongoose.connect(DB)
+//   .then(() => {
+//     console.log('Connected to the database');
+//   })
+//   .catch((error) => {
+//     console.error('Error connecting to the database', error);
+//   });
+
+// // Listen for incoming requests
+// const port = process.env.PORT || 9000;
+// const server = app.listen(port, () => {
+//   console.log(`App running on port ${port}...`);
+// });
+
+// // Handle unhandled promise rejections
+// process.on('unhandledRejection', err => {
+//   console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+//   console.error(err.name, err.message);
+//   server.close(() => {
+//     process.exit(1);
+//   });
+// });
+
+// // Handle SIGTERM signal for graceful shutdown
+// process.on('SIGTERM', () => {
+//   console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
+//   server.close(() => {
+//     console.log('💥 Process terminated!');
+//   });
+// });
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
@@ -5,57 +59,47 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = require('./app');
+
+// Handle uncaught exceptions
 process.on('uncaughtException', err => {
-  console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-  console.log(err.name, err.message);
+  console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  console.error(err.name, err.message);
   process.exit(1);
 });
 
-// Debugging: Print out the environment variables
-console.log("Database Password: ", process.env.DATABASE_PASSWORD);
-console.log("Database URI: ", process.env.DATABASE);
-
+// Replace placeholder with actual password in the database URI
 const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
 
-// Mongoose connection setup
+// Mongoose connection setup with increased timeout settings
 mongoose.connect(DB, {
-  // These options are now defaults and can be omitted
-  // useNewUrlParser: true, 
-  // useUnifiedTopology: true
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  ssl: true,
+  serverSelectionTimeoutMS: 5000, // Default is 30000 (30 seconds)
+  socketTimeoutMS: 45000, // Default is 360000 (6 minutes)
+  connectTimeoutMS: 30000, // Default is 30000 (30 seconds)
 }).then(() => {
   console.log('Connected to the database');
 }).catch((error) => {
   console.error('Error connecting to the database', error);
 });
-// mongoose
-//   .connect(DB, {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true,
-//     ssl: true, // Ensure SSL is enabled
-//     tlsAllowInvalidCertificates: true, // For testing purposes
-//     serverSelectionTimeoutMS: 5000, // Increase timeout settings
-//     socketTimeoutMS: 45000,
-//     connectTimeoutMS: 30000
-//   })
-//   .then(() => console.log('DB connection successful!'))
-//   .catch((err) => {
-//     console.error('DB connection error:', err.message);
-//     console.error('Full error details:', err);
-//   });
 
+// Listen for incoming requests
 const port = process.env.PORT || 9000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
 
+// Handle unhandled promise rejections
 process.on('unhandledRejection', err => {
-  console.log('UNHANDLED REJECTION! 💥 Shutting down...');
-  console.log(err.name, err.message);
+  console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+  console.error(err.name, err.message);
   server.close(() => {
     process.exit(1);
   });
 });
 
+// Handle SIGTERM signal for graceful shutdown
 process.on('SIGTERM', () => {
   console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
   server.close(() => {
