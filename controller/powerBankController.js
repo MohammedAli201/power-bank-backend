@@ -4,7 +4,8 @@ const dotenv = require('dotenv');
 const multer = require('multer');
 const fetch = require('node-fetch');
 const router = express.Router();
-
+const dotenv = require('dotenv');// dotenv.config({ path: './config.env' });
+dotenv.config({ path: './env' });
 const URL = "https://openapi.heycharge.global/v1/station/";
 const upload = multer();
 const API_KEY = process.env.API_KEY_POWER_BANK;
@@ -67,7 +68,7 @@ exports.getpowerBankStatusByStationId = async (req, res) => {
 exports.forUnclockSlotsById = async (req, res) => {
     const { params, body } = req;
     const { stationId } = params;
-    const apiKey = config.apiKey;
+    const apiKey = process.env.apiKey;
     console.warn('API Key:', apiKey);
     // const { slot_id } = body;
     // console.log('Slot ID:', slot_id);

@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
-const config = require('../config/config');
+// const config = require('../config/config');
+const dotenv = require('dotenv');// dotenv.config({ path: './config.env' });
+dotenv.config({ path: './env' });
+
 
 exports.SingUp = async (req, res) => {
     const { name, email, password, confirm_password, role } = req.body;
@@ -23,7 +26,7 @@ exports.SingUp = async (req, res) => {
          
         
         });
-        const token = jwt.sign({ id:Newuser._id }, config.TOKEN_SECRET, { expiresIn:config.JWT_EXPIRATION  });
+        const token = jwt.sign({ id:Newuser._id }, process.env.TOKEN_SECRET, { expiresIn:process.env.JWT_EXPIRATION  });
 
         
         return res.status(201).json({ status: 'success', token, data: { user:Newuser } });
@@ -46,7 +49,7 @@ exports.login = async (req, res) => {
         if (!user || !(await user.correctPassword(password, user.password))) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
-        const token = jwt.sign({ id: user._id }, config.TOKEN_SECRET, { expiresIn:config.JWT_EXPIRATION  });
+        const token = jwt.sign({ id: user._id }, process.env.TOKEN_SECRET, { expiresIn:process.env.JWT_EXPIRATION  });
         return res.status(200).json({ status: 'success', token });
     } catch (error) {
         console.error('User Login Error:', error);

@@ -1,11 +1,12 @@
 // controllers/paymentController.js
-
-const config = require('../config/config');
+const dotenv = require('dotenv');// dotenv.config({ path: './config.env' });
+dotenv.config({ path: './env' });
+// const config = require('../config/config');
 const WaafiPay = require('waafipay-sdk-node');
 const waafipay = new WaafiPay.API(
-  config.API_KEY,
-  config.APIUSERID,
-  config.MERCHAT_ID, 
+  process.env.API_KEY,
+  process.env.APIUSERID,
+  process.env.MERCHAT_ID, 
   { testMode: true }
 );
 

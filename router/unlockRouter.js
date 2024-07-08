@@ -2,14 +2,16 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 
+const dotenv = require('dotenv');// dotenv.config({ path: './config.env' });
+dotenv.config({ path: './env' });
 const upload = multer(); 
 // const fetch = require('node-fetch');
-const config = require('../config/config'); // Load configuration
+// const config = require('../config/config'); // Load configuration
 
 // Handle API requests to `/api/v1/easy/*`
 router.post('/',upload.none(), async (req, res) => {
   const { method, body, headers, originalUrl } = req;
-  const apiKey = config.apiKey;
+  const apiKey = process.env.apiKey;
   let endTime = new Date();
   console.log('Proxying request to:', req.params[0].replace('/', ''))
   if(req.params[0]=='/forceUnlock/'){

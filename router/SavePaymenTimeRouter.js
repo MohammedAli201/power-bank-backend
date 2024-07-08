@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const fs = require('fs');
-
+const dotenv = require('dotenv');// dotenv.config({ path: './config.env' });
+dotenv.config({ path: './env' });
 const upload = multer(); 
 
 // Handle API requests to /api/v1/stations/savePaymentInfo
@@ -12,7 +13,7 @@ router.post('/', upload.none(), async (req, res) => {
 
     // Mock config for demonstration, replace with actual config import if needed
     const config = { apiKey: 'your-api-key' };
-    const apiKey = config.apiKey;
+    const apiKey = process.env.apiKey;
 
     const startTime = new Date();
     const endTime = new Date(startTime.getTime() + 1 * 60 * 60 * 1000);

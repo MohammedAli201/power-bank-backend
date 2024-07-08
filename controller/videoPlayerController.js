@@ -4,8 +4,10 @@ const fetch = require('node-fetch');
 const config = require('../config/config');
 const FormData = require('form-data');
 
+const dotenv = require('dotenv');// dotenv.config({ path: './config.env' });
+dotenv.config({ path: './env' });
 const URL = "https://openapi.heycharge.global/v1/station/setScreenInfo";
-const API_KEY = config.apiKey;
+const API_KEY = process.env.apiKey;
 
 exports.uploadVideo = async (req, res) => {
     const { imei } = req.body;
