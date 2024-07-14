@@ -1,3 +1,5 @@
+// app.js
+
 // Import necessary modules
 const express = require('express');
 const morgan = require('morgan');
@@ -7,7 +9,6 @@ const compression = require('compression');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
-// Data sanitization against NoSQL query injection
 
 // Import routers
 const paymentRouter = require('./router/PaymentRouter');
@@ -16,9 +17,9 @@ const videoPlayerRouter = require('./router/videoRouter');
 const userRouter = require('./router/userRouter');
 const rentalRouter = require('./router/rentalRoutes');
 
-
 const app = express();
 app.use(mongoSanitize());
+
 // Middleware for logging requests in development environment
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
@@ -52,12 +53,7 @@ app.use('/api', limiter);
 app.use(cookieParser());
 
 // Set trust proxy configuration (choose one option)
-
-// Option 1: Configure trust proxy properly
 app.set('trust proxy', 1); // Trust the first proxy
-
-// Option 2: Disable trust proxy if not needed
-// app.disable('trust proxy');
 
 // Middleware to log the request time
 app.use((req, res, next) => {
@@ -71,7 +67,6 @@ app.use('/api/v1/stations/payments', paymentRouter);
 app.use('/api/v1/stations/video', videoPlayerRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/rentals', rentalRouter);
-
 
 // Middleware to handle undefined routes
 app.all('*', (req, res, next) => {
@@ -92,5 +87,4 @@ app.use((err, req, res, next) => {
     next();
 });
 
-// Export the Express application
 module.exports = app;

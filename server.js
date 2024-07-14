@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const rentalQueue = require('./rentalQueue'); // Import the rental queue to ensure it starts processing jobs
@@ -7,6 +6,7 @@ const rentalQueue = require('./rentalQueue'); // Import the rental queue to ensu
 dotenv.config();
 
 const app = require('./app');
+const { initialize } = require('./webSocketServer'); // Ensure this matches the file name
 
 // Handle uncaught exceptions
 process.on('uncaughtException', err => {
@@ -20,8 +20,6 @@ const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSW
 
 // Mongoose connection setup with increased timeout settings
 mongoose.connect(DB, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
   ssl: true,
   serverSelectionTimeoutMS: 5000, // Default is 30000 (30 seconds)
   socketTimeoutMS: 45000, // Default is 360000 (6 minutes)
@@ -36,6 +34,9 @@ mongoose.connect(DB, {
 const port = process.env.PORT || 9000;
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
+
+  // Initialize WebSocket server
+  initialize(server);
 });
 
 // Handle unhandled promise rejections
