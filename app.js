@@ -14,6 +14,8 @@ const paymentRouter = require('./router/PaymentRouter');
 const powerBankRouter = require('./router/PowerBankRouter');
 const videoPlayerRouter = require('./router/videoRouter');
 const userRouter = require('./router/userRouter');
+const rentalRouter = require('./router/rentalRoutes');
+
 
 const app = express();
 app.use(mongoSanitize());
@@ -68,6 +70,8 @@ app.use('/api/v1/stations', powerBankRouter);
 app.use('/api/v1/stations/payments', paymentRouter);
 app.use('/api/v1/stations/video', videoPlayerRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/rentals', rentalRouter);
+
 
 // Middleware to handle undefined routes
 app.all('*', (req, res, next) => {

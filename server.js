@@ -1,59 +1,7 @@
-// const mongoose = require('mongoose');
-// const dotenv = require('dotenv');
 
-// // Load environment variables from .env file
-// dotenv.config();
-
-// const app = require('./app');
-
-// // Handle uncaught exceptions
-// process.on('uncaughtException', err => {
-//   console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-//   console.error(err.name, err.message);
-//   process.exit(1);
-// });
-
-// // Debugging: Print out the environment variables
-// // Ensure to remove or comment these lines in production
-// console.log("Database Password: ", process.env.DATABASE_PASSWORD);
-// console.log("Database URI: ", process.env.DATABASE);
-
-// // Replace placeholder with actual password in the database URI
-// const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
-
-// // Mongoose connection setup
-// mongoose.connect(DB)
-//   .then(() => {
-//     console.log('Connected to the database');
-//   })
-//   .catch((error) => {
-//     console.error('Error connecting to the database', error);
-//   });
-
-// // Listen for incoming requests
-// const port = process.env.PORT || 9000;
-// const server = app.listen(port, () => {
-//   console.log(`App running on port ${port}...`);
-// });
-
-// // Handle unhandled promise rejections
-// process.on('unhandledRejection', err => {
-//   console.error('UNHANDLED REJECTION! 💥 Shutting down...');
-//   console.error(err.name, err.message);
-//   server.close(() => {
-//     process.exit(1);
-//   });
-// });
-
-// // Handle SIGTERM signal for graceful shutdown
-// process.on('SIGTERM', () => {
-//   console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
-//   server.close(() => {
-//     console.log('💥 Process terminated!');
-//   });
-// });
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const rentalQueue = require('./rentalQueue'); // Import the rental queue to ensure it starts processing jobs
 
 // Load environment variables from .env file
 dotenv.config();
