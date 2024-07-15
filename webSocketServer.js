@@ -1,31 +1,26 @@
-const socketIo = require('socket.io');
-
-let io;
+// webSocketServer.js
+const { Server } = require('socket.io');
 
 function initialize(server) {
-  io = socketIo(server, {
+  const io = new Server(server, {
     cors: {
-      origin: '*', // Adjust as needed
+      origin: 'https://capable-truffle-9dc1c2.netlify.app',
       methods: ['GET', 'POST'],
-    },
+      credentials: true
+    }
   });
 
   io.on('connection', (socket) => {
-    console.log('A user connected');
+    const userId = socket.handshake.query.userId; // Assume user ID is sent as query parameter
+    socket.join(userId); // Join room named after user ID
+    console.log(`User connected: ${userId}`);
 
     socket.on('disconnect', () => {
-      console.log('User disconnected');
+      console.log(`User disconnected: ${userId}`);
     });
   });
 
   return io;
 }
 
-function getIo() {
-  if (!io) {
-    throw new Error('Socket.io not initialized!');
-  }
-  return io;
-}
-
-module.exports = { initialize, getIo };
+module.exports = { initialize };

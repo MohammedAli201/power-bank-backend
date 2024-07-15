@@ -29,23 +29,25 @@ const callLockApi = async (rentalId) => {
 
 // Process jobs in the queue
 rentalQueue.process(async (job) => {
-  const { rentalId } = job.data;
+  const { rentalId, userId } = job.data; // Ensure userId is included in job data
   console.log(`Processing job for rental ID ${rentalId}`);
   const result = await callLockApi(rentalId);
   console.log(`Job result for rental ID ${rentalId}:`, result);
-  return result;
+  return { result, userId }; // Return both result and userId
 });
 
 rentalQueue.on('completed', (job, result) => {
-  console.log(`Job ${job.id} completed successfully`, result);
   const io = getIo(); // Get the initialized io instance
-  io.emit('rentalCompleted', { jobId: job.id, result: result });
+  const { userId } = job.data; // Get userId from job data
+  console.log(`Job ${job.id} completed successfully`, result);
+  io.to(userId).emit('rentalCompleted', { jobId: job.id, result: result.result });
 });
 
 rentalQueue.on('failed', (job, error) => {
-  console.error(`Job ${job.id} failed`, error);
   const io = getIo(); // Get the initialized io instance
-  io.emit('rentalFailed', { jobId: job.id, error: error.message });
+  const { userId } = job.data; // Get userId from job data
+  console.error(`Job ${job.id} failed`, error);
+  io.to(userId).emit('rentalFailed', { jobId: job.id, error: error.message });
 });
 
 module.exports = rentalQueue;

@@ -31,8 +31,19 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Middleware for handling CORS
-app.use(cors());
-app.options('*', cors());
+const allowedOrigins = ['https://capable-truffle-9dc1c2.netlify.app'];
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (allowedOrigins.includes(origin) || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Middleware for compressing responses
 app.use(compression());
