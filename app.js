@@ -18,7 +18,12 @@ const rentalRouter = require('./router/rentalRoutes');
 
 const app = express();
 const server = http.createServer(app); // Create HTTP server using Express app
-const io = new Server(server); // Create socket.io server
+const io = new Server(server, {
+    cors: {
+        origin: "https://capable-truffle-9dc1c2.netlify.app", // Allow your frontend origin
+        methods: ["GET", "POST"]
+    }
+});
 
 app.use(mongoSanitize());
 
