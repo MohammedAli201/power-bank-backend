@@ -1,6 +1,6 @@
 const Queue = require('bull');
 const Payment = require('./models/paymentModel');
-const { getIo } = require('./webSocketServer'); // Ensure this matches the file name
+const { getIo } = require('./webSocketServer'); // Correct function name is getIo
 
 const rentalQueue = new Queue('rentalQueue', process.env.REDIS_URL);
 

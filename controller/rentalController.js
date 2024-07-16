@@ -1,5 +1,5 @@
 const rentalQueue = require('../rentalQueue'); // Import the rental queue
-const { getIO } = require('../webSocketServer');
+const { getIo } = require('../webSocketServer'); // Ensure correct function name
 
 const createRental = async (req, res, next) => {
   const { rentalId, rentalDurationInMilliseconds } = req.body;
@@ -26,12 +26,12 @@ const createRental = async (req, res, next) => {
     job.finished().then((result) => {
       console.log(`Job ${job.id} for user ${userId} completed successfully`, result);
       // Notify the user
-      const io = getIO();
+      const io = getIo();
       io.to(userId).emit('rentalCompleted', { jobId: job.id, result });
     }).catch((error) => {
       console.error(`Job ${job.id} for user ${userId} failed`, error);
       // Notify the user about the failure
-      const io = getIO();
+      const io = getIo();
       io.to(userId).emit('rentalFailed', { jobId: job.id, error: error.message });
     });
   } catch (error) {
