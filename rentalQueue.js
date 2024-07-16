@@ -2,12 +2,10 @@ const Queue = require('bull');
 const Payment = require('./models/paymentModel');
 const { getIo } = require('./webSocketServer'); // Ensure this matches the file name
 
-// Initialize Bull queue
 const rentalQueue = new Queue('rentalQueue', process.env.REDIS_URL);
 
 console.log('Initializing rentalQueue');
 
-// Function to call lock API
 const callLockApi = async (rentalId) => {
   try {
     console.log(`Searching for user with phone number: ${rentalId}`);
@@ -27,7 +25,6 @@ const callLockApi = async (rentalId) => {
   }
 };
 
-// Process jobs in the queue
 rentalQueue.process(async (job) => {
   const { rentalId, userId } = job.data; // Ensure userId is included in job data
   console.log(`Processing job for rental ID ${rentalId}`);
