@@ -1,4 +1,3 @@
-// server.js or index.js (main entry file)
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const rentalQueue = require('./rentalQueue'); // Import the rental queue to ensure it starts processing jobs

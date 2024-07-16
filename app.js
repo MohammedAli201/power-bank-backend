@@ -1,6 +1,3 @@
-// app.js
-
-// Import necessary modules
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
@@ -9,6 +6,8 @@ const compression = require('compression');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
+const http = require('http');
+const { Server } = require("socket.io");
 
 // Import routers
 const paymentRouter = require('./router/PaymentRouter');
@@ -18,6 +17,9 @@ const userRouter = require('./router/userRouter');
 const rentalRouter = require('./router/rentalRoutes');
 
 const app = express();
+const server = http.createServer(app); // Create HTTP server using Express app
+const io = new Server(server); // Create socket.io server
+
 app.use(mongoSanitize());
 
 // Middleware for logging requests in development environment
@@ -96,6 +98,12 @@ app.use((err, req, res, next) => {
         message: err.message
     });
     next();
+});
+
+// WebSocket connection handling
+io.on('connection', (socket) => {
+    const userId = socket.handshake.query.userId; // Assume user ID is sent as query parameter
+    socket.join(userId); // Join room named after user ID
 });
 
 module.exports = app;
