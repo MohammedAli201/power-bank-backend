@@ -6,7 +6,7 @@ const rentalQueue = require('./rentalQueue'); // Import the rental queue to ensu
 dotenv.config();
 
 const app = require('./app');
-const { initialize } = require('./webSocketServer'); // Ensure this matches the file name
+const { initializeWebSocket } = require('./webSocketServer'); // Ensure this matches the function name
 
 // Handle uncaught exceptions
 process.on('uncaughtException', err => {
@@ -36,7 +36,7 @@ const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 
   // Initialize WebSocket server
-  initialize(server);
+  initializeWebSocket(server);
 });
 
 // Handle unhandled promise rejections

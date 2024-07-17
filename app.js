@@ -20,7 +20,7 @@ const app = express();
 const server = http.createServer(app); // Create HTTP server using Express app
 const io = new Server(server, {
     cors: {
-        origin: "https://capable-truffle-9dc1c2.netlify.app", // Allow your frontend origin
+        origin: ["https://capable-truffle-9dc1c2.netlify.app","http://localhost:3001"], // Allow your frontend origin
         methods: ["GET", "POST"]
     }
 });
@@ -38,13 +38,13 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Middleware for handling CORS
-const allowedOrigins = ['https://capable-truffle-9dc1c2.netlify.app'];
+const allowedOrigins = ['https://capable-truffle-9dc1c2.netlify.app', 'http://localhost:3000', 'http://localhost:3001'];
 const corsOptions = {
     origin: (origin, callback) => {
         if (allowedOrigins.includes(origin) || !origin) {
             callback(null, true);
         } else {
-            callback(new Error('Not allowed by CORS, and you have to fix it'));
+            callback(new Error('Not allowed by CORS'));
         }
     },
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
@@ -109,6 +109,9 @@ app.use((err, req, res, next) => {
 io.on('connection', (socket) => {
     const userId = socket.handshake.query.userId; // Assume user ID is sent as query parameter
     socket.join(userId); // Join room named after user ID
+
+    
+
 });
 
 module.exports = app;
