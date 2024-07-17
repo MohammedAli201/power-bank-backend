@@ -21,7 +21,9 @@ const server = http.createServer(app); // Create HTTP server using Express app
 const io = new Server(server, {
     cors: {
         origin: ["https://capable-truffle-9dc1c2.netlify.app","http://localhost:3001"], // Allow your frontend origin
-        methods: ["GET", "POST"]
+        methods: ["GET", "POST"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+        credentials: true
     }
 });
 
@@ -109,9 +111,6 @@ app.use((err, req, res, next) => {
 io.on('connection', (socket) => {
     const userId = socket.handshake.query.userId; // Assume user ID is sent as query parameter
     socket.join(userId); // Join room named after user ID
-
-    
-
 });
 
 module.exports = app;
