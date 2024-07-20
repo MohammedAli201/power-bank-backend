@@ -83,37 +83,86 @@ exports.findByPhoneNumber = async (req, res) => {
 
 
 
-
 exports.updatePaymentStatus = async (req, res) => {
   const { phoneNumber } = req.params;
 
   try {
+    // Get the current date and time in UTC
     const currentDateTime = new Date();
-    console.log("Current Date and Time:", currentDateTime);
-
-    const paymentInfo = await Payment.findOne({
-      phoneNumber,
-      paymentStatus: 'active',
-      lockStatus: 1,
-      endRentTime: { $lte: currentDateTime }
+    
+    // Formatting the current date time in ISO 8601 format for Africa/Mogadishu time zone
+    const timeManager = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Africa/Mogadishu",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false
     });
 
-    if (!paymentInfo) {
-      console.log("No active payment found or end time has not been reached yet.");
+    const parts = timeManager.formatToParts(currentDateTime).reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+    }, {});
+
+    const formattedDate = `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}Z`;
+    console.log("Mogadishu Time (ISO 8601):", formattedDate);
+
+    const formattedDateObject = new Date(formattedDate);
+    const currentTimeMS = formattedDateObject.getTime();
+    const currentMonth = formattedDateObject.getMonth() + 1;
+    const currentYear = formattedDateObject.getFullYear();
+
+    console.log("Current Month:", currentMonth);
+    console.log("Current Year:", currentYear);
+
+    // Fetch the payment records based on phone number, active status, and lock status
+    const paymentInfo = await Payment.find({
+      phoneNumber,
+      paymentStatus: 'active',
+      lockStatus: 1
+    });
+
+    if (paymentInfo.length === 0) {
+      console.log("No active payment found or lock status is not 1.");
       return res.status(404).json({
         message: "No active payment found for this phone number with the end time reached or almost reached and lock status of 1",
       });
     }
 
-    console.log("Matching Payment End Time:", paymentInfo.endRentTime);
+    console.log("Payments Found:", paymentInfo);
 
-    paymentInfo.paymentStatus = 'inactive';
-    paymentInfo.lockStatus = 0;
-    await paymentInfo.save();
+    let updatedPayments = [];
+
+    // Loop through each payment and update the status if the end time has been reached
+    for (let payment of paymentInfo) {
+      const paymentEndTime = new Date(payment.endRentTime);
+      const paymentEndTimeMS = paymentEndTime.getTime();
+
+      console.log("Payment End Time (ISO 8601):", payment.endRentTime);
+      console.log("Payment End Time (ms):", paymentEndTimeMS);
+      console.log("Current Time (ms):", currentTimeMS);
+
+      if (paymentEndTimeMS <= currentTimeMS || currentMonth !== (paymentEndTime.getMonth() + 1) || currentYear !== paymentEndTime.getFullYear()) {
+        console.log("The payment end time has been reached for payment ID:", payment._id);
+        payment.paymentStatus = 'inactive';
+        payment.lockStatus = 0;
+        await payment.save();
+        updatedPayments.push(payment);
+      }
+    }
+
+    if (updatedPayments.length === 0) {
+      return res.status(404).json({
+        message: "No active payments found for this phone number with the end time reached or almost reached and lock status of 1",
+      });
+    }
 
     return res.status(200).json({
-      message: "Payment status updated successfully",
-      paymentInfo,
+      message: "Payment statuses updated successfully",
+      updatedPayments,
     });
   } catch (error) {
     console.error('Error during updatePaymentStatus API call:', error);
