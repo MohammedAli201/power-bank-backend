@@ -2,8 +2,10 @@
 const dotenv = require('dotenv');// dotenv.config({ path: './config.env' });
 dotenv.config();
 const Payment = require('../models/paymentModel');
+const Rent = require('../models/Rent');
 // const config = require('../config/config');
 const WaafiPay = require('waafipay-sdk-node');
+const moment = require('moment-timezone');
 const waafipay = new WaafiPay.API(
   process.env.API_KEY,
   process.env.APIUSERID,
@@ -44,16 +46,75 @@ const preAuthorizeCommit = (params) => {
   });
 };
 
+// exports.savePaymentInfoWithUserInfo = async (req, res) => {
+//   try {
+
+//     const paymentInfo = await Payment.create(req.body); // Directly use req.body
+//     // we also need to save the rent information in the database
+
+//    req.body.paymentId = paymentInfo._id;
+//    req.body.status = 'active';
+//    req.body.powerbankId = req.body.stationId;
+//     req.body.startTime = new Date();
+//     req.body.endTime = req.body.endTime;
+//     const rentInfo = await Rent.create(req.body);
+  
+//     return res.status(200).json({
+//       message: "The payment operation is completed",
+//       paymentInfo: paymentInfo,
+//       rentInfo: rentInfo,
+
+//     });
+//   } catch (error) {
+//     console.error('Error during paymentSaveInfo API call:', error);
+//     res.status(400).json({ message: 'Payment saving request failed', error: error.message });
+//   }
+// };
 exports.savePaymentInfoWithUserInfo = async (req, res) => {
   try {
-    const paymentInfo = await Payment.create(req.body); // Directly use req.body
+    // Prepare payment data
+    const paymentData = {
+      stationId: req.body.stationId,
+      phoneNumber: req.body.phoneNumber,
+      slotId: req.body.slotId,
+      evcReference: req.body.evcReference,
+      timestampEvc: req.body.timestampEvc,
+      amount: req.body.amount,
+      isPaid: req.body.isPaid,
+      endRentTime: req.body.endRentTime,
+      startTime: req.body.startTime,
+      hoursPaid: req.body.hoursPaid,
+      millisecondsPaid: req.body.millisecondsPaid,
+      currency: req.body.currency,
+      paymentStatus: req.body.paymentStatus,
+      lockStatus: req.body.lockStatus
+    };
+
+    // Create payment record
+    const paymentInfo = await Payment.create(paymentData);
+
+    // Prepare rent data
+    const rentData = {
+      phoneNumber: req.body.phoneNumber,
+      paymentId: paymentInfo._id,
+      powerbankId: req.body.stationId, // or another field if different
+      startTime: req.body.startTime,
+      endTime: req.body.endRentTime,
+      status: 'active',
+    };
+
+    // Create rent record
+    const rentInfo = await Rent.create(rentData);
+
+    // Respond with created records
     return res.status(200).json({
       message: "The payment operation is completed",
       paymentInfo: paymentInfo,
+      rentInfo: rentInfo,
     });
   } catch (error) {
-    console.error('Error during paymentSaveInfo API call:', error);
-    res.status(400).json({ message: 'Payment saving request failed', error: error.message });
+    console.error('Error during savePaymentInfoWithUserInfo API call:', error);
+    return res.status(400).json({ message: 'Payment saving request failed', error: error.message });
   }
 };
 
@@ -83,40 +144,173 @@ exports.findByPhoneNumber = async (req, res) => {
 
 
 
+// exports.updatePaymentStatus = async (req, res) => {
+//   const { phoneNumber } = req.params;
+
+//   try {
+//     // Get the current date and time in UTC
+//     const currentDateTime = new Date();
+    
+//     // Formatting the current date time in ISO 8601 format for Africa/Mogadishu time zone
+//     const timeManager = new Intl.DateTimeFormat("en-GB", {
+//       timeZone: "Africa/Mogadishu",
+//       year: "numeric",
+//       month: "2-digit",
+//       day: "2-digit",
+//       hour: "2-digit",
+//       minute: "2-digit",
+//       second: "2-digit",
+//       hour12: false
+//     });
+
+//     const parts = timeManager.formatToParts(currentDateTime).reduce((acc, part) => {
+//       acc[part.type] = part.value;
+//       return acc;
+//     }, {});
+
+//     const formattedDate = `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}Z`;
+//     console.log("Mogadishu Time (ISO 8601):", formattedDate);
+
+//     const formattedDateObject = new Date(formattedDate);
+//     const currentTimeMS = formattedDateObject.getTime();
+//     const currentMonth = formattedDateObject.getMonth() + 1;
+//     const currentYear = formattedDateObject.getFullYear();
+
+//     console.log("Current Month:", currentMonth);
+//     console.log("Current Year:", currentYear);
+
+//     // Fetch the payment records based on phone number, active status, and lock status
+//     const paymentInfo = await Payment.find({
+//       phoneNumber,
+//       paymentStatus: 'active',
+//       lockStatus: 1
+//     }).populate('paymentId');
+
+//     if (paymentInfo.length === 0) {
+//       console.log("No active payment found or lock status is not 1.");
+//       return res.status(404).json({
+//         message: "No active payment found for this phone number with the end time reached or almost reached and lock status of 1",
+//       });
+//     }
+
+//     console.log("Payments Found:", paymentInfo);
+
+//     let updatedPayments = [];
+
+//     // Loop through each payment and update the status if the end time has been reached
+//     for (let payment of paymentInfo) {
+//       const paymentEndTime = new Date(payment.endRentTime);
+//       const paymentEndTimeMS = paymentEndTime.getTime();
+
+//       console.log("Payment End Time (ISO 8601):", payment.endRentTime);
+//       console.log("Payment End Time (ms):", paymentEndTimeMS);
+//       console.log("Current Time (ms):", currentTimeMS);
+
+//       if (paymentEndTimeMS <= currentTimeMS || currentMonth !== (paymentEndTime.getMonth() + 1) || currentYear !== paymentEndTime.getFullYear()) {
+//         console.log("The payment end time has been reached for payment ID:", payment._id);
+//         payment.paymentStatus = 'inactive';
+//         payment.lockStatus = 0;
+//         await payment.save();
+//         updatedPayments.push(payment);
+//       }
+//     }
+
+//     if (updatedPayments.length === 0) {
+//       return res.status(404).json({
+//         message: "No active payments found for this phone number with the end time reached or almost reached and lock status of 1",
+//       });
+//     }
+
+//     return res.status(200).json({
+//       message: "Payment statuses updated successfully",
+//       updatedPayments,
+//     });
+//   } catch (error) {
+//     console.error('Error during updatePaymentStatus API call:', error);
+//     res.status(500).json({ message: 'Request failed', error: error.message });
+//   }
+// };
+
+
+
+
+// exports.updatePaymentStatus = async (req, res) => {
+//   const { phoneNumber } = req.params;
+
+//   try {
+//     // Get the current date and time in the Africa/Mogadishu time zone
+//     const currentDateTime = moment().tz("Africa/Mogadishu").toISOString();
+//     console.log("Mogadishu Time (ISO 8601):", currentDateTime);
+
+//     // Fetch the payment records based on phone number, active status, and lock status
+//     const paymentInfo = await Payment.find({
+//       phoneNumber,
+//       paymentStatus: 'active',
+//       lockStatus: 1
+//     });
+
+//     // If no active payments are found, return a 404 response
+
+//    // rent should be expired if the end time is reached
+//    const rentInfo = await Rent.find({
+//     phoneNumber,
+//     _id: paymentInfo._id,
+//     status: 'active',
+//   });
+
+//     if (paymentInfo.length === 0) {
+//       return res.status(404).json({
+//         message: "No active payments found for this phone number with the end time reached or almost reached and lock status of 1",
+//       });
+//     }
+
+//     let updatedPayments = [];
+
+//     // Loop through each payment and update the status if the end time has been reached
+//     for (let payment of paymentInfo) {
+//       const paymentEndTime = new Date(payment.endRentTime);
+//       const currentTimeMS = new Date(currentDateTime).getTime();
+//       const paymentEndTimeMS = paymentEndTime.getTime();
+
+//       console.log("Payment End Time (ISO 8601):", payment.endRentTime);
+//       console.log("Payment End Time (ms):", paymentEndTimeMS);
+//       console.log("Current Time (ms):", currentTimeMS);
+
+//       if (paymentEndTimeMS <= currentTimeMS) {
+//         console.log("The payment end time has been reached for payment ID:", payment._id);
+//         payment.paymentStatus = 'inactive';
+//         payment.lockStatus = 0;
+//         await payment.save();
+//         updatedPayments.push(payment);
+//       }
+//     }
+
+//     if (updatedPayments.length === 0) {
+//       return res.status(404).json({
+//         message: "No active payments found for this phone number with the end time reached or almost reached and lock status of 1",
+//       });
+//     }
+
+//     return res.status(200).json({
+//       message: "Payment statuses updated successfully",
+//       updatedPayments,
+//     });
+//   } catch (error) {
+//     console.error('Error during updatePaymentStatus API call:', error);
+//     res.status(500).json({ message: 'Request failed', error: error.message });
+//   }
+// };
+
 exports.updatePaymentStatus = async (req, res) => {
   const { phoneNumber } = req.params;
 
   try {
-    // Get the current date and time in UTC
-    const currentDateTime = new Date();
-    
-    // Formatting the current date time in ISO 8601 format for Africa/Mogadishu time zone
-    const timeManager = new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Africa/Mogadishu",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false
-    });
-
-    const parts = timeManager.formatToParts(currentDateTime).reduce((acc, part) => {
-      acc[part.type] = part.value;
-      return acc;
-    }, {});
-
-    const formattedDate = `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}Z`;
-    console.log("Mogadishu Time (ISO 8601):", formattedDate);
-
-    const formattedDateObject = new Date(formattedDate);
-    const currentTimeMS = formattedDateObject.getTime();
-    const currentMonth = formattedDateObject.getMonth() + 1;
-    const currentYear = formattedDateObject.getFullYear();
-
-    console.log("Current Month:", currentMonth);
-    console.log("Current Year:", currentYear);
+    // Get the current date and time in the Africa/Mogadishu time zone
+    const currentDateTime = moment().tz("Africa/Mogadishu").format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
+    console.log("Mogadishu Time (ISO 8601):", currentDateTime);
+    const currentTimeMS = currentDateTime.valueOf();
+console.log("Current Time (ms):", currentTimeMS);
+    // console.log(moment.tz.names());
 
     // Fetch the payment records based on phone number, active status, and lock status
     const paymentInfo = await Payment.find({
@@ -126,50 +320,59 @@ exports.updatePaymentStatus = async (req, res) => {
     });
 
     if (paymentInfo.length === 0) {
-      console.log("No active payment found or lock status is not 1.");
       return res.status(404).json({
-        message: "No active payment found for this phone number with the end time reached or almost reached and lock status of 1",
+        message: "No active payments found for this phone number with the end time reached or almost reached and lock status of 1",
       });
     }
 
-    console.log("Payments Found:", paymentInfo);
-
     let updatedPayments = [];
+    let updatedRents = [];
 
     // Loop through each payment and update the status if the end time has been reached
     for (let payment of paymentInfo) {
       const paymentEndTime = new Date(payment.endRentTime);
+      const currentTimeMS = new Date(currentDateTime).getTime();
       const paymentEndTimeMS = paymentEndTime.getTime();
 
       console.log("Payment End Time (ISO 8601):", payment.endRentTime);
       console.log("Payment End Time (ms):", paymentEndTimeMS);
       console.log("Current Time (ms):", currentTimeMS);
 
-      if (paymentEndTimeMS <= currentTimeMS || currentMonth !== (paymentEndTime.getMonth() + 1) || currentYear !== paymentEndTime.getFullYear()) {
+      if (paymentEndTimeMS <= currentTimeMS) {
         console.log("The payment end time has been reached for payment ID:", payment._id);
+
+        // Update the payment status and lock status
         payment.paymentStatus = 'inactive';
         payment.lockStatus = 0;
         await payment.save();
         updatedPayments.push(payment);
+
+        // Also update the associated rent status to inactive
+        const rent = await Rent.findOne({ phoneNumber, paymentId: payment._id, status: 'active' });
+        if (rent) {
+          rent.status = 'expired';
+          await rent.save();
+          updatedRents.push(rent);
+        }
       }
     }
 
-    if (updatedPayments.length === 0) {
+    if (updatedPayments.length === 0 && updatedRents.length === 0) {
       return res.status(404).json({
-        message: "No active payments found for this phone number with the end time reached or almost reached and lock status of 1",
+        message: "No active payments or rents found for this phone number with the end time reached or almost reached and lock status of 1",
       });
     }
 
     return res.status(200).json({
-      message: "Payment statuses updated successfully",
+      message: "Payment and rent statuses updated successfully",
       updatedPayments,
+      updatedRents,
     });
   } catch (error) {
     console.error('Error during updatePaymentStatus API call:', error);
     res.status(500).json({ message: 'Request failed', error: error.message });
   }
 };
-
 
 
 
