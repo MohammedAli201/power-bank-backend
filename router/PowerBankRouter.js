@@ -164,4 +164,8 @@ router
   .route('/powerBankRouter/:stationId/forceUnlock')
   .post(upload.none(), powerBankController.forUnclockSlotsById);
 
+router
+.route('/powerBankRouter/:stationId/returnPowerBank')
+.post(upload.none(), powerBankController.getReturnPowerBank);
+
 module.exports = router;

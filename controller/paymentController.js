@@ -124,16 +124,22 @@ exports.findByPhoneNumber = async (req, res) => {
   console.log(typeof(phoneNumber))
 
   try {
-    
-    const paymentInfo = await Payment.find({ phoneNumber });
+    // const paymentInfo = await Rent.find()
+    // const paymentInfo = await Rent.find().sort({ createdAt: -1 }); // Sort by latest
+    const paymentInfo = await Rent.find({}, '-__v -_id')
+      
+    .populate({path:'paymentId', select:"-__v -_id"}).sort({ createdAt: -1 }); // Sort by latest and populate paymentId
+
+    // const paymentInfo = await Rent.find({phoneNumber}).populate({
+    //   path:'paymentId',
+    // });
     if (!paymentInfo.length) {
       return res.status(404).json({
-        message: "No payment information found for this phone number",
+        message: "No Rent information found for this phone number",
       });
     }
-
     return res.status(200).json({
-      message: "Payment information retrieved successfully",
+      message: "Rent information retrieved successfully",
       paymentInfo,
     });
   } catch (error) {

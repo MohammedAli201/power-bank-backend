@@ -31,6 +31,12 @@ const rentSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  lockStatus: {
+    type: Number,
+    enum: [0, 1],
+   
+  }
+
 });
 
 const Rent = mongoose.model('Rent', rentSchema);
