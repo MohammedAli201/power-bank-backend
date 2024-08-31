@@ -40,7 +40,7 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Middleware for handling CORS
-const allowedOrigins = ['https://danabpowerbank.netlify.app/', 'http://localhost:3000'];
+const allowedOrigins = ['https://danabpowerbank.netlify.app', 'http://localhost:3000'];
 const corsOptions = {
     origin: (origin, callback) => {
         if (allowedOrigins.includes(origin) || !origin) {
