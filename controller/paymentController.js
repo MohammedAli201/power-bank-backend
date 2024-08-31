@@ -548,6 +548,7 @@ const waafiPayHelper = {
       });
     });
   },
+  
   preAuthorizeCommit: (params) => {
     return new Promise((resolve, reject) => {
       waafipay.preAuthorizeCommit(params, (error, body) => {

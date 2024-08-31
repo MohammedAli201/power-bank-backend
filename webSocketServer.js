@@ -5,7 +5,7 @@ let io;
 const initializeWebSocket = (server) => {
     io = new Server(server, {
         cors: {
-            origin: ["https://capable-truffle-9dc1c2.netlify.app","http://localhost:3000"],
+            origin: ["https://danabpowerbank.netlify.app","http://localhost:3000"],
             methods: ["GET", "POST"]
         }
     });

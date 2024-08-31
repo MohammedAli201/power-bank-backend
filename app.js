@@ -20,7 +20,7 @@ const app = express();
 const server = http.createServer(app); // Create HTTP server using Express app
 const io = new Server(server, {
     cors: {
-        origin: ["https://capable-truffle-9dc1c2.netlify.app", "http://localhost:3000", "https://danabpowerbank.netlify.app/","https://openapi.heycharge.global/v1/station/"], // Allow your frontend origin
+        origin: ["https://danabpowerbank.netlify.app", "http://localhost:3000", "https://danabpowerbank.netlify.app/","https://openapi.heycharge.global/v1/station/"], // Allow your frontend origin
         methods: ["GET", "POST"],
         allowedHeaders: ["Content-Type", "Authorization"],
         credentials: true
