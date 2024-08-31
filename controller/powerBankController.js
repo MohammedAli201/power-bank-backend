@@ -6,76 +6,73 @@ const fetch = require('node-fetch');
 const router = express.Router();
 const Rent = require('../models/Rent');
 dotenv.config();
+
 const URL = "https://openapi.heycharge.global/v1/station/";
-const upload = multer();
 const API_KEY = process.env.API_KEY_POWER_BANK;
+const upload = multer();
+
+// Helper function for error handling
+const handleError = (res, statusCode, message, errorType) => {
+    console.error(`${errorType}: ${message}`);
+    return res.status(statusCode).json({ error: message, errorType });
+};
+
 exports.getReturnPowerBank = async (req, res) => {
-    const { method, body, headers, params } = req;
-   
-    const { stationId } = params;
+    const { stationId } = req.params;
     console.log('stationId:', stationId);
-// after retun the power bank, we will get access the station id and we will update the database with the status of the power bank
-  try {
-    const rent = await Rent.findOne({powerbankId : stationId,   status: 'expired',});
-    console.log('Rent:', rent);
-    if(rent){
-      rent.status = "returned";
-      rent.lockStatus=0;
-      await rent.save();
-    }else{
-        return res.json({message : "Power bank not found"});
-    }
-    return res.json({message : "Power bank returned successfully"});
-    
+
+    try {
+        const rent = await Rent.findOne({ powerbankId: stationId, status: 'expired' });
+        console.log('Rent:', rent);
+
+        if (!rent) {
+            return handleError(res, 404, 'Power bank not found', 'resourceNotFound');
+        }
+
+        rent.status = "returned";
+        rent.lockStatus = 0;
+        await rent.save();
+
+        return res.json({ message: "Power bank returned successfully" });
     } catch (error) {
-        console.error('Error with API request:', error);
-        return res.status(500).json({ error: 'Internal Server Error' });
+        return handleError(res, 500, 'Internal Server Error', 'serverError');
     }
 };
 
-
 exports.getpowerBankStatusByStationId = async (req, res) => {
-    const { method, body, headers, params } = req;
-    console.log('API Key:', API_KEY);
-    const { stationId } = params;
+    const { stationId } = req.params;
     const targetUrl = `${URL}${stationId}`;
+    console.log('Target URL:', targetUrl);
 
     try {
         const options = {
-            method,
+            method: 'GET',
             headers: {
                 'Authorization': `Basic ${Buffer.from(API_KEY + ':').toString('base64')}`,
             }
         };
 
-        if (method !== 'GET' && method !== 'HEAD' && body) {
-            if (body instanceof FormData) {
-                options.body = body;
-            } else {
-                options.headers['Content-Type'] = 'application/json';
-                options.body = JSON.stringify(body);
-            }
-        }
-
         console.log('API Service Request:', targetUrl, options);
 
         const response = await fetch(targetUrl, options);
-        console.log('API Service Response:', response);
 
         if (!response.ok) {
+            let errorType = 'networkError';
             let errorMessage = `HTTP error! Status: ${response.status}`;
+
             if (response.status === 402) {
-                errorMessage = 'Payment required: Please check your subscription or payment plan.';
+                errorType = 'resourceNotFound';
             } else if (response.status === 400) {
                 const errorData = await response.json();
+                errorType = 'badRequest';
                 errorMessage = `Bad Request: ${errorData.message || response.statusText}`;
             }
-            console.error('API Service Error:', errorMessage);
-            return res.status(response.status).json({ error: errorMessage });
+
+            return handleError(res, response.status, errorMessage, errorType);
         }
 
         const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
+        if (contentType && contentType.includes("application/json")) {
             const data = await response.json();
             return res.json(data);
         } else {
@@ -84,78 +81,67 @@ exports.getpowerBankStatusByStationId = async (req, res) => {
             return res.send(responseBody);
         }
     } catch (error) {
-        console.error('Error with API request:', error);
-        return res.status(500).json({ error: 'Internal Server Error' });
+        return handleError(res, 500, 'Internal Server Error', 'serverError');
     }
 };
 
 exports.forUnclockSlotsById = async (req, res) => {
-    const { params, body } = req;
-    const { stationId } = params;
-    const apiKey = process.env.apiKey;
-    console.warn('API Key:', apiKey);
-    // const { slot_id } = body;
-    // console.log('Slot ID:', slot_id);
+    const { stationId } = req.params;
+    const { slot_id } = req.body;
+    const targetUrl = `${URL}${stationId}/forceUnlock`;
+    console.log('Target URL:', targetUrl);
+    console.log('Slot ID:', slot_id);
 
-    return res.json({
-        status: 'Unlocking is successful',
-        unlockTime: new Date().toISOString(),
-        unlocked: true,
-        stationId: stationId,
-        // slotId: slot_id,
-    });
+    try {
+        const formData = new URLSearchParams(req.body).toString();
 
-    // const targetUrl = `${URL}${stationId}/forceUnlock`;
-    // console.log('Target URL:', targetUrl);
+        const options = {
+            method: 'POST',
+            headers: {
+                'Authorization': `Basic ${Buffer.from(API_KEY + ':').toString('base64')}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData
+        };
 
-    // try {
-    //     const formData = new URLSearchParams(body).toString();
+        console.log('API Service Request:', targetUrl, options);
 
-    //     const options = {
-    //         method: 'POST',
-    //         headers: {
-    //             'Authorization': `Basic ${Buffer.from(apiKey + ':').toString('base64')}`,
-    //             'Content-Type': 'application/x-www-form-urlencoded',
-    //         },
-    //         body: formData
-    //     };
+        const response = await fetch(targetUrl, options);
 
-    //     console.log('API Service Request:', targetUrl, options);
+        if (!response.ok) {
+            let errorType = 'networkError';
+            let errorMessage = `HTTP error! Status: ${response.status}`;
 
-    //     const response = await fetch(targetUrl, options);
+            if (response.status === 402) {
+                errorType = 'resourceNotFound';
+            } else if (response.status === 400) {
+                const errorData = await response.json();
+                errorType = 'badRequest';
+                errorMessage = `Bad Request: ${errorData.message || response.statusText}`;
+            }
 
-    //     if (!response.ok) {
-    //         let errorMessage = `HTTP error! Status: ${response.status}`;
-    //         if (response.status === 402) {
-    //             errorMessage = 'Payment required: Please check your subscription or payment plan.';
-    //         } else if (response.status === 400) {
-    //             const errorData = await response.json();
-    //             errorMessage = `Bad Request: ${errorData.message || response.statusText}`;
-    //         }
-    //         console.error('API Service Error from unlock router:', errorMessage);
-    //         return res.status(response.status).json({ error: errorMessage });
-    //     }
+            return handleError(res, response.status, errorMessage, errorType);
+        }
 
-    //     const contentType = response.headers.get("content-type");
-    //     if (contentType && contentType.indexOf("application/json") !== -1) {
-    //         const data = await response.json();
-    //         return res.json({
-    //             status: 'Unlocking is successful',
-    //             unlockTime: new Date().toISOString(),
-    //             unlocked: true,
-    //             stationId: stationId,
-    //             slotId: slot_id,
-    //         });
-    //     } else {
-    //         return res.status(200).send({
-    //             status: 'Unlocking is successful',
-    //             unlockTime: new Date().toISOString(),
-    //             unlocked: true,
-    //             stationId: stationId,
-    //         });
-    //     }
-    // } catch (error) {
-    //     console.error('Error with API request:', error);
-    //     return res.status(500).json({ error: 'Internal Server Error' });
-    // }
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const data = await response.json();
+            return res.json({
+                status: 'Unlocking is successful',
+                unlockTime: new Date().toISOString(),
+                unlocked: true,
+                stationId: stationId,
+                slotId: slot_id,
+            });
+        } else {
+            return res.status(200).send({
+                status: 'Unlocking is successful',
+                unlockTime: new Date().toISOString(),
+                unlocked: true,
+                stationId: stationId,
+            });
+        }
+    } catch (error) {
+        return handleError(res, 500, 'Internal Server Error', 'serverError');
+    }
 };
