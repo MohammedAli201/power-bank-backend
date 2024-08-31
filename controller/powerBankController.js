@@ -6,73 +6,81 @@ const fetch = require('node-fetch');
 const router = express.Router();
 const Rent = require('../models/Rent');
 dotenv.config();
-
 const URL = "https://openapi.heycharge.global/v1/station/";
-const API_KEY = process.env.API_KEY_POWER_BANK;
 const upload = multer();
-
-// Helper function for error handling
-const handleError = (res, statusCode, message, errorType) => {
-    console.error(`${errorType}: ${message}`);
-    return res.status(statusCode).json({ error: message, errorType });
-};
-
+const API_KEY = process.env.API_KEY_POWER_BANK;
 exports.getReturnPowerBank = async (req, res) => {
-    const { stationId } = req.params;
+    const { method, body, headers, params } = req;
+   
+    const { stationId } = params;
     console.log('stationId:', stationId);
-
-    try {
-        const rent = await Rent.findOne({ powerbankId: stationId, status: 'expired' });
-        console.log('Rent:', rent);
-
-        if (!rent) {
-            return handleError(res, 404, 'Power bank not found', 'resourceNotFound');
-        }
-
-        rent.status = "returned";
-        rent.lockStatus = 0;
-        await rent.save();
-
-        return res.json({ message: "Power bank returned successfully" });
+// after retun the power bank, we will get access the station id and we will update the database with the status of the power bank
+  try {
+    const rent = await Rent.findOne({powerbankId : stationId,   status: 'expired',});
+    console.log('Rent:', rent);
+    if(rent){
+      rent.status = "returned";
+      rent.lockStatus=0;
+      await rent.save();
+    }else{
+        return res.json({message : "Power bank not found", 
+            type_error : "resourceNotFound"
+        });
+    }
+    return res.json({message : "Power bank returned successfully"});
+    
     } catch (error) {
-        return handleError(res, 500, 'Internal Server Error', 'serverError');
+        console.error('Error with API request:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
+
 exports.getpowerBankStatusByStationId = async (req, res) => {
-    const { stationId } = req.params;
+    const { method, body, headers, params } = req;
+   
+    console.log('Params:', req.params);
+    const { stationId } = params;
     const targetUrl = `${URL}${stationId}`;
     console.log('Target URL:', targetUrl);
+    console.log('Station Name:', stationId);
 
     try {
         const options = {
-            method: 'GET',
+            method,
             headers: {
                 'Authorization': `Basic ${Buffer.from(API_KEY + ':').toString('base64')}`,
             }
         };
 
+        if (method !== 'GET' && method !== 'HEAD' && body) {
+            if (body instanceof FormData) {
+                options.body = body;
+            } else {
+                options.headers['Content-Type'] = 'application/json';
+                options.body = JSON.stringify(body);
+            }
+        }
+
         console.log('API Service Request:', targetUrl, options);
 
         const response = await fetch(targetUrl, options);
+        console.log('API Service Response:', response);
 
         if (!response.ok) {
-            let errorType = 'networkError';
-            let errorMessage = `HTTP error! Status: ${response.status}`;
-
+            let errorType = `HTTP error! Status: ${response.status}`;
             if (response.status === 402) {
-                errorType = 'resourceNotFound';
+                errorType = 'networkError.';
             } else if (response.status === 400) {
                 const errorData = await response.json();
-                errorType = 'badRequest';
-                errorMessage = `Bad Request: ${errorData.message || response.statusText}`;
+                errorType = `Bad Request: ${errorData.message || response.statusText}`;
             }
-
-            return handleError(res, response.status, errorMessage, errorType);
+            console.error('API Service Error:', errorType);
+            return res.status(response.status).json({ error: errorType });
         }
 
         const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
+        if (contentType && contentType.indexOf("application/json") !== -1) {
             const data = await response.json();
             return res.json(data);
         } else {
@@ -81,19 +89,26 @@ exports.getpowerBankStatusByStationId = async (req, res) => {
             return res.send(responseBody);
         }
     } catch (error) {
-        return handleError(res, 500, 'Internal Server Error', 'serverError');
+        console.error('Error with API request:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
 exports.forUnclockSlotsById = async (req, res) => {
-    const { stationId } = req.params;
-    const { slot_id } = req.body;
-    const targetUrl = `${URL}${stationId}/forceUnlock`;
-    console.log('Target URL:', targetUrl);
+    const { params, body } = req;
+    const { stationId } = params;
+    //const apiKey = process.env.apiKey;
+    console.warn('API Key:', API_KEY);
+    const { slot_id } = body;
     console.log('Slot ID:', slot_id);
 
+  
+
+    const targetUrl = `${URL}${stationId}/forceUnlock`;
+    console.log('Target URL:', targetUrl);
+
     try {
-        const formData = new URLSearchParams(req.body).toString();
+        const formData = new URLSearchParams(body).toString();
 
         const options = {
             method: 'POST',
@@ -109,22 +124,19 @@ exports.forUnclockSlotsById = async (req, res) => {
         const response = await fetch(targetUrl, options);
 
         if (!response.ok) {
-            let errorType = 'networkError';
-            let errorMessage = `HTTP error! Status: ${response.status}`;
-
+            let errorType = `HTTP error! Status: ${response.status}`;
             if (response.status === 402) {
                 errorType = 'resourceNotFound';
             } else if (response.status === 400) {
                 const errorData = await response.json();
-                errorType = 'badRequest';
-                errorMessage = `Bad Request: ${errorData.message || response.statusText}`;
+                errorType = `networkError: `;
             }
-
-            return handleError(res, response.status, errorMessage, errorType);
+            console.error('API Service Error from unlock router:', errorType);
+            return res.status(response.status).json({ error: errorType });
         }
 
         const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
+        if (contentType && contentType.indexOf("application/json") !== -1) {
             const data = await response.json();
             return res.json({
                 status: 'Unlocking is successful',
@@ -142,6 +154,7 @@ exports.forUnclockSlotsById = async (req, res) => {
             });
         }
     } catch (error) {
-        return handleError(res, 500, 'Internal Server Error', 'serverError');
-    }
+        console.error('Error with API request:', error);
+        return res.status(500).json({ error: 'networkError' , message : 'Internal Server Error' });
+     }
 };
