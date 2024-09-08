@@ -15,6 +15,7 @@ const powerBankRouter = require('./router/PowerBankRouter');
 const videoPlayerRouter = require('./router/videoRouter');
 const userRouter = require('./router/userRouter');
 const rentalRouter = require('./router/rentalRoutes');
+const smsRouter = require('./router/smsRoute');
 
 const app = express();
 const server = http.createServer(app); // Create HTTP server using Express app
@@ -87,6 +88,7 @@ app.use('/api/v1/stations/payments', paymentRouter);
 app.use('/api/v1/stations/video', videoPlayerRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/rentals', rentalRouter);
+app.use('/api/v1/sms', smsRouter);
 
 // Middleware to handle undefined routes
 app.all('*', (req, res, next) => {
