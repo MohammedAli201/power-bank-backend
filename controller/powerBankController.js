@@ -1,41 +1,100 @@
 const express = require('express');
 const config = require('../config/config');
+const Payment = require('../models/paymentModel');
 const dotenv = require('dotenv');
 const multer = require('multer');
 const fetch = require('node-fetch');
 const router = express.Router();
 const Rent = require('../models/Rent');
 dotenv.config();
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const URL = "https://openapi.heycharge.global/v1/station/";
 const upload = multer();
 const API_KEY = process.env.API_KEY_POWER_BANK;
+// exports.getReturnPowerBank = async (req, res) => {
+//     const { method, body, headers, params } = req;
+//     // consolo.log("Initiated the getReturnPowerBank function");
+   
+//     const { imei,battery_id ,slot_id} = body;
+//     console.log('stationId:', imei);
+// // after retun the power bank, we will get access the station id and we will update the database with the status of the power bank
+//   try {
+
+//     const rent = await Rent.findOne({powerbankId : imei,status:"expired" ||"active",});
+//     // payment update 
+
+//     const payment = await Payment.findOne({paymentId: rent.paymentId, slotId: slot_id, battery_id:battery_id,status: 'active' || "expired"});
+
+//     payment.status = "expired";
+//     await payment.save();
+//     console.log('Rent:', rent);
+//     if(rent){
+//       rent.status = "returned";
+//       rent.lockStatus=0;
+//       await rent.save();
+//     }else{
+//         return res.json({message : "Power bank not returned successfully", 
+//             type_error : "resourceNotFound"
+//         });
+//     }
+//     return res.json({message : "Power bank returned successfully"});
+    
+//     } catch (error) {
+//         console.error('Error with API request:', error);
+//         return res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// };
+
 exports.getReturnPowerBank = async (req, res) => {
     const { method, body, headers, params } = req;
-   
-    const { stationId } = params;
-    console.log('stationId:', stationId);
-// after retun the power bank, we will get access the station id and we will update the database with the status of the power bank
-  try {
-    const rent = await Rent.findOne({powerbankId : stationId,   status: 'expired',});
-    console.log('Rent:', rent);
-    if(rent){
-      rent.status = "returned";
-      rent.lockStatus=0;
-      await rent.save();
-    }else{
-        return res.json({message : "Power bank not found", 
-            type_error : "resourceNotFound"
+    const { imei, battery_id, slot_id } = body;
+  
+    console.log('stationId:', imei);
+    console.log('battery_id:', battery_id);
+    console.log('slot_id:', slot_id);
+
+  
+    try {
+      // Use $in to check for both "expired" and "active" statuses
+      const rent = await Rent.findOne({ powerbankId: imei, status: { $in: ["expired", "active"] } });
+        console.log('Rent:', rent); 
+      if (!rent) {
+        return res.json({
+          message: "Power bank not returned successfully",
+          type_error: "resourceNotFound",
         });
-    }
-    return res.json({message : "Power bank returned successfully"});
-    
+      }
+  
+      // Find the payment by paymentId, slotId, and battery_id with status "expired" or "active"
+      const payment = await Payment.findOne({
+        _id: rent.paymentId, // Ensure this is queried as ObjectId
+        slotId: slot_id,
+        battery_id: battery_id,
+        // status: { $in: ["expired", "active","inactive"] },
+      });
+      console.log('payment id :', rent.paymentId);
+      console.log('payment:', payment); 
+  
+      // Update payment status
+      if (payment) {
+        payment.status = "inactive";
+        await payment.save();
+      }
+  
+      // Update rent status
+      rent.status = "returned";
+      rent.lockStatus = 0;
+      await rent.save();
+  
+      return res.json({ message: "Power bank returned successfully" });
+  
     } catch (error) {
-        console.error('Error with API request:', error);
-        return res.status(500).json({ error: 'Internal Server Error' });
+      console.error('Error with API request:', error);
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
-};
-
-
+  };
+  
 exports.getpowerBankStatusByStationId = async (req, res) => {
     const { method, body, headers, params } = req;
    
@@ -99,8 +158,9 @@ exports.forUnclockSlotsById = async (req, res) => {
     const { stationId } = params;
     //const apiKey = process.env.apiKey;
     console.warn('API Key:', API_KEY);
-    const { slot_id } = body;
-    console.log('Slot ID:', slot_id);
+    
+    const { slotId } = body;
+    // console.log('Slot ID:', slotId);
 
   
 
@@ -143,7 +203,7 @@ exports.forUnclockSlotsById = async (req, res) => {
                 unlockTime: new Date().toISOString(),
                 unlocked: true,
                 stationId: stationId,
-                slotId: slot_id,
+                slotId: slotId,
             });
         } else {
             return res.status(200).send({

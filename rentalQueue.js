@@ -1,3 +1,233 @@
+// // const Queue = require('bull');
+// // const Payment = require('./models/paymentModel');
+// // const { getIo } = require('./webSocketServer');
+// // const moment = require('moment-timezone');
+// // const Rent = require('./models/Rent');
+// // const rentalQueue = new Queue('rentalQueue', process.env.REDIS_URL);
+
+// // console.log('Initializing rentalQueue');
+
+// // // Function to handle payments and rents
+// // const callLockApi = async (rentalId) => {
+// //   try {
+// //     console.log(`Searching for payments for phone number (rental ID): ${rentalId}`);
+// //     const phoneNumber = rentalId;
+
+// //     const currentDateTime = moment().tz("Africa/Mogadishu");
+// //     const currentTimeMS = currentDateTime.valueOf();
+
+// //     const paymentInfo = await Payment.find({
+// //       phoneNumber,
+// //       paymentStatus: 'active',
+// //       lockStatus: 1
+// //     });
+
+// //     if (paymentInfo.length === 0) {
+// //       console.log("No active payments found for this phone number with lock status of 1");
+// //       return { message: "No active payments found", updatedPayments: [], updatedRents: [] };
+// //     }
+
+// //     let updatedPayments = [];
+// //     let updatedRents = [];
+
+// //     for (let payment of paymentInfo) {
+// //       if (!payment.endRentTime) {
+// //         console.error(`Payment ID ${payment._id} does not have an endRentTime.`);
+// //         continue;
+// //       }
+
+// //       const paymentEndTime = moment(payment.endRentTime).valueOf();
+// //       if (paymentEndTime <= currentTimeMS) {
+// //         console.log(`The payment end time has been reached for payment ID: ${payment._id}`);
+
+// //         payment.paymentStatus = 'inactive';
+// //         payment.lockStatus = 0;
+// //         await payment.save();
+// //         updatedPayments.push(payment);
+
+// //         const rent = await Rent.findOne({ phoneNumber, paymentId: payment._id, status: 'active' });
+// //         if (!rent) {
+// //           console.error(`No active rent found for payment ID ${payment._id}.`);
+// //           continue;
+// //         }
+
+// //         rent.status = 'expired';
+// //         await rent.save();
+// //         updatedRents.push(rent);
+// //       }
+// //     }
+
+// //     return {
+// //       message: 'Payments and rents updated successfully',
+// //       updatedPayments,
+// //       updatedRents,
+// //     };
+// //   } catch (error) {
+// //     console.error('Error in callLockApi:', error);
+// //     throw new Error(`An error occurred while processing the request: ${error.message}`);
+// //   }
+// // };
+
+// // // Processing the job in the queue
+// // rentalQueue.process(async (job) => {
+// //   const { rentalId, userId } = job.data;
+// //   console.log(`Processing job for rental ID: ${rentalId}, User ID: ${userId}, Job ID: ${job.id}`);
+
+// //   try {
+// //     const result = await callLockApi(rentalId);
+// //     console.log(`Job result for rental ID: ${rentalId}, Job ID: ${job.id}:`, result);
+    
+// //     return { result, userId };  // Return result to trigger 'completed'
+// //   } catch (error) {
+// //     console.error(`Error processing job for rental ID: ${rentalId}, Job ID: ${job.id}: ${error.message}`);
+// //     throw error;  // Trigger the 'failed' event
+// //   }
+// // });
+
+// // // Handling job completion
+// // rentalQueue.on('completed', (job, result) => {
+// //   const io = getIo();
+// //   console.log(`Job ${job.id} completed successfully for rental ID: ${job.data.rentalId}, User ID: ${job.data.userId}`);
+
+// //   const { userId } = job.data;
+// //   if (userId) {
+// //     console.log(`Emitting rentalCompleted event to User ID: ${userId}, Job ID: ${job.id}`);
+// //     io.to(userId).emit('rentalCompleted', { jobId: job.id, result: result.result, userId });
+// //   } else {
+// //     console.error(`Job ${job.id} completed but no userId found in job data.`);
+// //   }
+// // });
+
+// // // Handling job failures
+// // rentalQueue.on('failed', (job, error) => {
+// //   const io = getIo();
+// //   const { userId } = job.data;
+// //   console.error(`Job ${job.id} failed for rental ID: ${job.data.rentalId}, User ID: ${userId}, Error: ${error.message}`);
+
+// //   if (userId) {
+// //     console.log(`Emitting rentalFailed event to User ID: ${userId}, Job ID: ${job.id}`);
+// //     io.to(userId).emit('rentalFailed', { jobId: job.id, error: error.message, userId });
+// //   } else {
+// //     console.error(`Job ${job.id} failed but no userId found in job data.`);
+// //   }
+// // });
+
+// // module.exports = rentalQueue;
+
+
+// const Queue = require('bull');
+// const Payment = require('./models/paymentModel');
+// const { getIo } = require('./webSocketServer');
+// const moment = require('moment-timezone');
+// const Rent = require('./models/Rent');
+// const rentalQueue = new Queue('rentalQueue', process.env.REDIS_URL);
+
+// console.log('Initializing rentalQueue');
+
+// // Function to handle payments and rents
+// const callLockApi = async (rentalId) => {
+//   try {
+//     console.log(`Searching for payments for phone number (rental ID): ${rentalId}`);
+//     const phoneNumber = rentalId;
+
+//     const currentDateTime = moment().tz("Africa/Mogadishu");
+//     const currentTimeMS = currentDateTime.valueOf();
+
+//     const paymentInfo = await Payment.find({
+//       phoneNumber,
+//       paymentStatus: 'active',
+//       lockStatus: 1
+//     });
+
+//     if (paymentInfo.length === 0) {
+//       console.log("No active payments found for this phone number with lock status of 1");
+//       return { message: "No active payments found", updatedPayments: [], updatedRents: [] };
+//     }
+
+//     let updatedPayments = [];
+//     let updatedRents = [];
+
+//     for (let payment of paymentInfo) {
+//       if (!payment.endRentTime) {
+//         console.error(`Payment ID ${payment._id} does not have an endRentTime.`);
+//         continue;
+//       }
+
+//       const paymentEndTime = moment(payment.endRentTime).valueOf();
+//       if (paymentEndTime <= currentTimeMS) {
+//         console.log(`The payment end time has been reached for payment ID: ${payment._id}`);
+
+//         payment.paymentStatus = 'inactive';
+//         payment.lockStatus = 0;
+//         await payment.save();
+//         updatedPayments.push(payment);
+
+//         const rent = await Rent.findOne({ phoneNumber, paymentId: payment._id, status: 'active' });
+//         if (!rent) {
+//           console.error(`No active rent found for payment ID ${payment._id}.`);
+//           continue;
+//         }
+
+//         rent.status = 'expired';
+//         await rent.save();
+//         updatedRents.push(rent);
+//       }
+//     }
+
+//     return {
+//       message: 'Payments and rents updated successfully',
+//       updatedPayments,
+//       updatedRents,
+//     };
+//   } catch (error) {
+//     console.error('Error in callLockApi:', error);
+//     throw new Error(`An error occurred while processing the request: ${error.message}`);
+//   }
+// };
+
+// // Processing the job in the queue
+// rentalQueue.process(async (job) => {
+//   const { rentalId, userId } = job.data;
+//   console.log(`Processing job for rental ID: ${rentalId}, User ID: ${userId}, Job ID: ${job.id}`);
+
+//   try {
+//     const result = await callLockApi(rentalId);
+//     console.log(`Job result for rental ID: ${rentalId}, Job ID: ${job.id}:`, result);
+    
+//     return { result, userId };  // Return result to trigger 'completed'
+//   } catch (error) {
+//     console.error(`Error processing job for rental ID: ${rentalId}, Job ID: ${job.id}: ${error.message}`);
+//     throw error;  // Trigger the 'failed' event
+//   }
+// });
+
+// // Handling job completion globally
+// rentalQueue.on('completed', (job, result) => {
+//   const io = getIo();
+//   const { userId } = job.data;
+//   if (userId) {
+//     console.log(`Job ${job.id} for user ${userId} completed successfully`);
+//     io.to(userId).emit('rentalCompleted', { jobId: job.id, result });
+//   } else {
+//     console.error(`Job ${job.id} completed but no userId found.`);
+//   }
+// });
+
+// // Handling job failure globally
+// rentalQueue.on('failed', (job, error) => {
+//   const io = getIo();
+//   const { userId } = job.data;
+//   if (userId) {
+//     console.error(`Job ${job.id} for user ${userId} failed: ${error.message}`);
+//     io.to(userId).emit('rentalFailed', { jobId: job.id, error: error.message });
+//   } else {
+//     console.error(`Job ${job.id} failed but no userId found.`);
+//   }
+// });
+
+// module.exports = rentalQueue;
+
+
 const Queue = require('bull');
 const Payment = require('./models/paymentModel');
 const { getIo } = require('./webSocketServer');

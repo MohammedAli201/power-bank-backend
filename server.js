@@ -1,3 +1,60 @@
+// const mongoose = require('mongoose');
+// const dotenv = require('dotenv');
+// const rentalQueue = require('./rentalQueue'); // Import the rental queue to ensure it starts processing jobs
+// const { initializeWebSocket } = require('./webSocketServer'); // Ensure this matches the function name
+
+// dotenv.config(); // Load environment variables
+
+// const app = require('./app'); // Your Express app
+
+// // Handle uncaught exceptions
+// process.on('uncaughtException', err => {
+//   console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+//   console.error(err.name, err.message);
+//   process.exit(1);
+// });
+
+// // Replace placeholder with actual password in the database URI
+// const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
+
+// // Mongoose connection setup with increased timeout settings
+// mongoose.connect(DB, {
+//   ssl: true,
+//   serverSelectionTimeoutMS: 5000,
+//   socketTimeoutMS: 45000,
+//   connectTimeoutMS: 30000,
+// }).then(() => {
+//   console.log('Connected to the database');
+// }).catch((error) => {
+//   console.error('Error connecting to the database', error);
+// });
+
+// // Listen for incoming requests
+// const port = process.env.PORT || 9000;
+// const server = app.listen(port, () => {
+//   console.log(`App running on port ${port}...`);
+
+//   // Initialize WebSocket server
+//   initializeWebSocket(server);
+// });
+
+// // Handle unhandled promise rejections
+// process.on('unhandledRejection', err => {
+//   console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+//   console.error(err.name, err.message);
+//   server.close(() => {
+//     process.exit(1);
+//   });
+// });
+
+// // Handle SIGTERM signal for graceful shutdown
+// process.on('SIGTERM', () => {
+//   console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
+//   server.close(() => {
+//     console.log('💥 Process terminated!');
+//   });
+// });
+
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const rentalQueue = require('./rentalQueue'); // Import the rental queue to ensure it starts processing jobs

@@ -125,6 +125,8 @@ exports.savePaymentInfoWithUserInfo = async (req, res) => {
   try {
     // Log the incoming request body for debugging
     console.log('Request Body:', req.body);
+    // check if the user has accepted the terms and conditions
+    
 
     // Prepare payment data
     const paymentData = {
@@ -144,7 +146,8 @@ exports.savePaymentInfoWithUserInfo = async (req, res) => {
       millisecondsPaid: req.body.millisecondsPaid,
       currency: req.body.currency,
       paymentStatus: req.body.paymentStatus,
-      lockStatus: req.body.lockStatus
+      lockStatus: req.body.lockStatus,
+      term_and_conditions: req.body.term_and_conditions,
     };
     console.log('Payment Data before:', paymentData);
 
@@ -412,6 +415,7 @@ console.log("Current Time (ms):", currentTimeMS);
         // Update the payment status and lock status
         payment.paymentStatus = 'inactive';
         payment.lockStatus = 0;
+        payment.term_and_conditions= true
         await payment.save();
         updatedPayments.push(payment);
 
@@ -461,6 +465,7 @@ exports.evc_paymentRequest = async (req, res) => {
       currency: currency,
       description: description,
     });
+    console.log('PreAuthorize Result:', preAuthResult); 
 
     const transactionId = preAuthResult.params?.transactionId;
     if (!transactionId) {
