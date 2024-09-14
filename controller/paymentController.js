@@ -144,7 +144,8 @@ exports.savePaymentInfoWithUserInfo = async (req, res) => {
       millisecondsPaid: req.body.millisecondsPaid,
       currency: req.body.currency,
       paymentStatus: req.body.paymentStatus,
-      lockStatus: req.body.lockStatus
+      lockStatus: req.body.lockStatus,
+      terms_and_conditions: req.body.terms_and_conditions,
     };
     console.log('Payment Data before:', paymentData);
 
