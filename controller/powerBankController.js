@@ -193,6 +193,7 @@ exports.forUnclockSlotsById = async (req, res) => {
                 unlocked: true,
                 stationId: stationId,
                 slotId: slot_id,
+                
             });
         } else {
             return res.status(200).send({
