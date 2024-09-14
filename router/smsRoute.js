@@ -7,7 +7,7 @@ const router = express.Router();
 
 router
   .route('/SendNotification')
-  .all(upload.none(), smsController.SendNotification);
+  .post(upload.none(), smsController.SendNotification);
 
 
 
