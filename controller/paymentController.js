@@ -652,7 +652,7 @@ exports.savePaymentInfoWithUserInfo = async (req, res) => {
       stationId: req.body.stationName,
       branch_name: req.body.branch_name,
       phoneNumber: req.body.phoneNumber,
-      slotId: req.body.slotId,
+      slotId: req.body.slot_id,
       createdAt: req.body.createdAt,
       battery_id: req.body.battery_id,
       evcReference: req.body.evcReference,

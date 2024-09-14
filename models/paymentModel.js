@@ -347,6 +347,10 @@ const paymentSchema = new mongoose.Schema({
     enum: [0, 1],
     required: [true, 'A lock status must be specified'],
   },
+  term_and_conditions: {
+    type: Boolean,
+    required: [true, 'A payment must have terms and conditions'],
+  },
 });
 
 // Middleware to ensure the createdAt field is saved in the Africa/Mogadishu timezone
