@@ -162,7 +162,8 @@ console.log('Initializing rentalQueue');
       const paymentInfo = await Payment.find({
         phoneNumber,
         paymentStatus: 'active',
-        lockStatus: 1
+        lockStatus: 1,
+        term_and_conditions: true
       });
       console.log("Payment Info:", paymentInfo);
   
@@ -193,6 +194,7 @@ console.log('Initializing rentalQueue');
   
           // Update the payment status and lock status
           payment.paymentStatus = 'inactive';
+          payment.term_and_conditions = true;
           payment.lockStatus = 0;
           await payment.save();
           updatedPayments.push(payment);

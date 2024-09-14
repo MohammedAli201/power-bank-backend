@@ -349,7 +349,8 @@ const paymentSchema = new mongoose.Schema({
   },
   term_and_conditions: {
     type: Boolean,
-    required: [true, 'A payment must have terms and conditions'],
+    default: true,
+    
   },
 });
 
