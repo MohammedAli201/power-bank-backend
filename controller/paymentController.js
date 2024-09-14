@@ -644,6 +644,7 @@ exports.savePaymentInfoWithUserInfo = async (req, res) => {
   try {
     // Log the incoming request body for debugging
     console.log('Request Body:', req.body);
+    console.log('Request Body:', req.body.slot_id);
     // check if the user has accepted the terms and conditions
     
 
