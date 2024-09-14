@@ -153,7 +153,7 @@ const express = require('express');
 const multer = require('multer');
 const upload = multer();
 const powerBankController = require('../controller/powerBankController');
-
+const privateRouter = require('../utiliz/privateRoute');
 const router = express.Router();
 
 router
@@ -165,7 +165,8 @@ router
   .post(upload.none(), powerBankController.forUnclockSlotsById);
 
 router
-.route('/powerBankRouter/:stationId/returnPowerBank')
-.post(upload.none(), powerBankController.getReturnPowerBank);
+.route('/powerBankRouter/returnPowerBank/return')
+.post(upload.none(),privateRouter, powerBankController.getReturnPowerBank);
+
 
 module.exports = router;
