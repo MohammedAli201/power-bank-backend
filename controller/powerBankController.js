@@ -3,6 +3,8 @@ const config = require('../config/config');
 const Payment = require('../models/paymentModel');
 const dotenv = require('dotenv');
 const multer = require('multer');
+const FormData = require('form-data');
+
 const fetch = require('node-fetch');
 const router = express.Router();
 const Rent = require('../models/Rent');

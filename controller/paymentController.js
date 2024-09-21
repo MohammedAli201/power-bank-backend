@@ -358,6 +358,7 @@ console.log("Current Time (ms):", currentTimeMS);
       }
     }
 
+    
     if (updatedPayments.length === 0 && updatedRents.length === 0) {
       return res.status(404).json({
         message: "No active payments or rents found for this phone number with the end time reached or almost reached and lock status of 1",

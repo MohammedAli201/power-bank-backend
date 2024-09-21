@@ -21,7 +21,7 @@ const app = express();
 const server = http.createServer(app); // Create HTTP server using Express app
 const io = new Server(server, {
     cors: {
-        origin: ["https://danabpowerbank.netlify.app/","https://openapi.heycharge.global/v1/station/"], // Allow your frontend origin
+        origin: ["https://danabpowerbank.netlify.app/","https://openapi.heycharge.global/v1/station/", "http://localhost:3000/"], // Allow your frontend origin
         methods: ["GET", "POST"],
         allowedHeaders: ["Content-Type", "Authorization"],
         credentials: true
@@ -90,6 +90,10 @@ app.use('/api/v1/users', userRouter);
 app.use('/api/v1/rentals', rentalRouter);
 app.use('/api/v1/sms', smsRouter);
 
+app.get('/', (req, res) => {
+    res.send('Welcome to Danab Power Bank!');
+  });
+  
 // Middleware to handle undefined routes
 app.all('*', (req, res, next) => {
     res.status(404).json({
