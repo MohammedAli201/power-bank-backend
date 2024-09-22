@@ -52,7 +52,7 @@ exports.evc_paymentRequest = async (req, res) => {
     console.log('Commit Result:', commitResult);
 
     // Step 4: Use the factory functions to create payment and rent data
-    const paymentData = createPaymentData(req.body, transactionId, unlockResult);
+    const paymentData = createPaymentData(req.body, transactionId, unlockResult,commitResult);
     const rentData = createRentData(req.body, paymentData.paymentId);
     const savePaymentResult = await savePaymentInfoWithUserInfo(paymentData, rentData);
     console.log('Payment and Rent saved:', savePaymentResult);

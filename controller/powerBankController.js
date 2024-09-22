@@ -4,7 +4,7 @@ const Payment = require('../models/paymentModel');
 const dotenv = require('dotenv');
 const multer = require('multer');
 const FormData = require('form-data');
-
+const sendSMS = require('../utiliz/smsUtils');
 
 const fetch = require('node-fetch');
 const router = express.Router();
@@ -56,8 +56,17 @@ exports.getReturnPowerBank = async (req, res) => {
       rent.status = "returned";
       rent.lockStatus = 0;
       await rent.save();
+
+      // send sms to user
+    const message = `Waad kumahadsantahy isticmaal adeegeyna!. Thank you for using our service.`;
+    const phoneNumber = rent.phoneNumber;
+    const senderid = 'Danab Power Bank';
+    const smsResponse = await sendSMS(phoneNumber, message, senderid);
+
   
-      return res.json({ message: "Power bank returned successfully" });
+      return res.json({ message: "Power bank returned successfully" ,
+        smsResponse: smsResponse
+      });
   
     } catch (error) {
       console.error('Error with API request:', error);
@@ -67,8 +76,6 @@ exports.getReturnPowerBank = async (req, res) => {
 
   
 
-
-  
 exports.getpowerBankStatusByStationId = async (req, res) => {
     const { method, body, headers, params } = req;
    
