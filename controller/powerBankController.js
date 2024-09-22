@@ -5,13 +5,13 @@ const dotenv = require('dotenv');
 const multer = require('multer');
 const FormData = require('form-data');
 const sendSMS = require('../utiliz/smsUtils');
+const Message = require('../utiliz/smsUtils');
 
 const fetch = require('node-fetch');
 const router = express.Router();
 const Rent = require('../models/Rent');
 dotenv.config();
 const mongoose = require('mongoose');
-const ObjectId = mongoose.Types.ObjectId;
 const URL = "https://openapi.heycharge.global/v1/station/";
 const upload = multer();
 const API_KEY = process.env.API_KEY_POWER_BANK;
@@ -58,10 +58,9 @@ exports.getReturnPowerBank = async (req, res) => {
       await rent.save();
 
       // send sms to user
-    const message = `Waad kumahadsantahy isticmaal adeegeyna!. Thank you for using our service.`;
-    const phoneNumber = rent.phoneNumber;
-    const senderid = 'Danab Power Bank';
-    const smsResponse = await sendSMS(phoneNumber, message, senderid);
+      const sendMess = Message(phoneNumber) 
+   
+    const smsResponse = await sendSMS(phoneNumber, sendMess.message, sendMess.senderid);
 
   
       return res.json({ message: "Power bank returned successfully" ,
@@ -201,10 +200,12 @@ exports.getpowerBankStatusByStationId = async (req, res) => {
 
 
 // Standalone function for programmatic use
-async function forceUnlockSlot(stationId, slotId) {
+async function forceUnlockSlot(stationId, slot_id) {
     const targetUrl = `${URL}${stationId}/forceUnlock`;
-    const formData = new URLSearchParams({ slotId }).toString();
+    console.log('Target URL:', targetUrl);
 
+    const formData = new URLSearchParams({ slot_id }).toString();
+    console.log('Form Data:', formData);    
     const options = {
         method: 'POST',
         headers: {
@@ -252,10 +253,10 @@ async function forceUnlockSlot(stationId, slotId) {
 // Express route handler
 exports.forUnclockSlotsById = async (req, res) => {
     const { stationId } = req.params;
-    const { slotId } = req.body;
+    const { slot_id } = req.body;
 
     try {
-        const result = await forceUnlockSlot(stationId, slotId);
+        const result = await forceUnlockSlot(stationId, slot_id);
         return res.json(result);
     } catch (error) {
         console.error('Error with API request:', error);

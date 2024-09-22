@@ -30,9 +30,9 @@ exports.evc_paymentRequest = async (req, res) => {
     if (!transactionId) {
       throw new Error('TransactionId is not provided in the preAuthorize response');
     }
-
+    const slot_id = slotId;
     // Step 2: Force unlock the power bank
-    const unlockResult = await forceUnlockSlot(stationId, slotId);
+    const unlockResult = await forceUnlockSlot(stationId, slot_id);
     console.log('Power bank unlock result:', unlockResult);
     if (!unlockResult.unlocked) {
       // cancel the payment if the power bank is not unlocked
