@@ -1,7 +1,7 @@
 
 const fetch = require('node-fetch');
 const qs = require('qs');
-
+const smsFormatterUtils = require('../utiliz/smsFormatterUtils');
 const sendSMS = require('../utiliz/smsUtils');
 
 // const baseURL = 'https://smsapi.hormuud.com/';
@@ -12,11 +12,27 @@ const sendSMS = require('../utiliz/smsUtils');
                 
 exports.SendNotification = async (req, res) => {
 
-    try {
-        const { mobile, message, senderid } = req.body;
-        console.log('Received request to send SMS for mobile:', mobile); // Safe logging
 
-        const smsResponse = await sendSMS(mobile, message, senderid);
+
+    try {
+        const { rentalId, formattedStartTime, formattedEndTime } = req.body;
+        console.log('Rental ID:', rentalId);
+        console.log('Start Time:', formattedStartTime);
+        console.log('End Time:', formattedEndTime);
+        
+
+        
+  const smsfrm = smsFormatterUtils({
+    type:"createRent",
+    phoneNumber:rentalId,
+    startTime: formattedStartTime,
+    endTime: formattedEndTime,
+  });
+ console.log('smsfrm:', smsfrm);
+  const smsResponse = await sendSMS({mobile:smsfrm.formattedPhone, message:smsfrm.message, senderid:"Danab Power Bank"});
+console.log(smsResponse)
+
+       // const smsResponse = await sendSMS(mobile, message, senderid);
         console.log('SMS Response:', smsResponse);
         res.status(200).json({ message: 'SMS sent successfully', details: smsResponse
         });

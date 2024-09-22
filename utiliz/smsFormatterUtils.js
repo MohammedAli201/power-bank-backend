@@ -1,13 +1,14 @@
 
 const smsFormatterUtils = ({ type, phoneNumber, startTime, endTime }) => {
   // Helper function to format time from ISO string
-  const formatTime = (isoString) => {
-    return isoString.substring(11, 16); // Extract the time portion (HH:mm)
+  const formatTime = (time) => {
+    return time.substring(11, 16); // Extract the time portion (HH:mm)
   };
 
   // Helper function to extract the last nine digits of the phone number
-  const extractLastNineDigits = (number) => {
-    return number.toString().slice(-9);
+  const extractLastNineDigits = (phoneNumber) => {
+    console.log('phoneNumber:', phoneNumber);
+    return phoneNumber.toString().slice(-9);
   };
 
   // Function to create message based on the type

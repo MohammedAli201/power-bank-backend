@@ -10,10 +10,11 @@ const username = process.env.SMS_USERNAME; // Securely managed through environme
 // const password = process.env.SMS_PASSWORD; // Securely managed through environment variables
 const SMS_API_KEY = process.env.SMS_API_KEY;
 
-async function sendSMS (mobile, message, senderid) {
-
+async function sendSMS(mobile, message, senderid) {
     try {
-        console.log('Received request to send SMS for mobile:', req.body.mobile); // Safe logging
+        // console.log('Received request to send SMS for mobile:', mobile);
+        // console.log('SMS Message:', message);
+
 
         const tokenBody = qs.stringify({
             grant_type: "password",
@@ -29,11 +30,12 @@ async function sendSMS (mobile, message, senderid) {
             },
             body: tokenBody
         });
-        console.log('Token response:', tokenResponse)
+
         const tokenData = await tokenResponse.json();
+        console.log('Token Data:', tokenData); // Log the token data
         if (!tokenResponse.ok) {
             console.error('Failed to fetch token:', tokenData.error_description);
-            return res.status(tokenResponse.status).json({ error: 'Authentication failed.', details: tokenData });
+            throw new Error(`Authentication failed: ${tokenData.error_description}`);
         }
 
         const accessToken = tokenData.access_token;
@@ -53,20 +55,18 @@ async function sendSMS (mobile, message, senderid) {
         });
 
         const smsData = await smsResponse.json();
+        console.log('SMS Response Data:', smsData); // Log the SMS response data
         if (!smsResponse.ok) {
             console.error('Failed to send SMS:', smsData.error_description);
-            return res.status(smsResponse.status).json({ error: 'SMS sending failed.', details: smsData });
+            throw new Error(`SMS sending failed: ${smsData.error_description}`);
         }
 
-        res.json(smsData);
+        return smsData; // Return the response data
     } catch (error) {
         console.error('Unexpected error:', error.message);
-        res.status(500).json({
-            error: 'Internal server error',
-            message: error.message
-        });
+        throw new Error(error.message);
     }
-  
 }
 
-module.exports = { sendSMS };
+
+module.exports = sendSMS;

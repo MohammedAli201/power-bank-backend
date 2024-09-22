@@ -9,7 +9,7 @@ const { createPaymentData, createRentData } = require('../utiliz/dataFactory');
 exports.evc_paymentRequest = async (req, res) => {
   console.log('Received request for evc_paymentRequest:', req.body);
 
-  const { accountNo, amount, currency, description, stationId, slotId, phoneNumber, stationName, branch_name } = req.body;
+  const { accountNo, amount, currency, description, stationId, slot_id, phoneNumber, stationName, branch_name } = req.body;
 
   if (!accountNo || !amount || !currency || !description) {
     return res.status(400).json({ message: 'Missing required parameters' });
@@ -30,9 +30,9 @@ exports.evc_paymentRequest = async (req, res) => {
     if (!transactionId) {
       throw new Error('TransactionId is not provided in the preAuthorize response');
     }
-    const slot_id = slotId;
     // Step 2: Force unlock the power bank
     const unlockResult = await forceUnlockSlot(stationId, slot_id);
+    
     console.log('Power bank unlock result:', unlockResult);
     if (!unlockResult.unlocked) {
       // cancel the payment if the power bank is not unlocked

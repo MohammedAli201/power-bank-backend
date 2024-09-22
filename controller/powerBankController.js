@@ -220,10 +220,14 @@ async function forceUnlockSlot(stationId, slot_id) {
     if (!response.ok) {
         let errorType = `HTTP error! Status: ${response.status}`;
         if (response.status === 402) {
-            errorType = 'resourceNotFound';
+            return {
+               unlock : false,
+            };
         } else if (response.status === 400) {
             const errorData = await response.json();
-            errorType = `networkError: ${errorData.message}`;
+            return {
+                unlock : false,
+            };
         }
         console.error('API Service Error from unlock router:', errorType);
         throw new Error(`Unlocking failed: ${errorType}`);
@@ -237,7 +241,7 @@ async function forceUnlockSlot(stationId, slot_id) {
             unlockTime: new Date().toISOString(),
             unlocked: true,
             stationId: stationId,
-            slotId: slotId,
+            slot_id: slot_id,
             data: data
         };
     } else {

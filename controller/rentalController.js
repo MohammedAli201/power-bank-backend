@@ -4,13 +4,13 @@ const sendSMS = require('../utiliz/smsUtils');
 
 
 const createRental = async (req, res) => {
-  const { rentalId, rentalDurationInMilliseconds, startTime, endTime } = req.body;
+  const { rentalId, rentalDurationInMilliseconds, formattedStartTime, formattedEndTime } = req.body;
 
   try {
     console.log(`Creating rental: ${rentalId} ${rentalDurationInMilliseconds}`);
-
     // Send initial SMS notification
-    await sendRentalSMS("createRent", rentalId, startTime, endTime);
+    const phoneNumber = rentalId;
+    await sendRentalSMS("createRent", phoneNumber, formattedStartTime, formattedEndTime);
 
     // Add job to queue when a rental is created
     const job = await rentalQueue.add(
@@ -27,7 +27,7 @@ const createRental = async (req, res) => {
 
     // Listen for job completion
     job.finished().then(async (result) => {
-      await sendRentalSMS("completedRent", rentalId, startTime, endTime);
+      await sendRentalSMS("completedRent", phoneNumber, formattedStartTime, formattedEndTime);
       console.log(`Job ${job.id} completed successfully, result:`, result);
     }).catch((error) => {
       console.error(`Job ${job.id} failed, error:`, error);
@@ -41,9 +41,18 @@ const createRental = async (req, res) => {
 };
 
 // Utility function to send rental SMS
-const sendRentalSMS = async (type, rentalId, startTime, endTime) => {
-  const smsfrm = smsFormatterUtils.formatRentalSMS(type, rentalId, startTime, endTime);
-  const smsResponse = await sendSMS(smsfrm.formattedPhone, smsfrm.message);
+
+const sendRentalSMS = async (type, phoneNumber, formattedStartTime, formattedEndTime) => {
+
+  // const smsfrm = smsFormatterUtils(type, phoneNumber, formattedStartTime, formattedEndTime);
+
+  const smsfrm = smsFormatterUtils({
+    type,
+    phoneNumber,
+    startTime: formattedStartTime,
+    endTime: formattedEndTime,
+  });
+  const smsResponse = await sendSMS({mobile:smsfrm.formattedPhone, message:smsfrm.message, senderid:"Danab Power Bank"});
   console.log(`SMS Response for ${type}:`, smsResponse);
 };
 
