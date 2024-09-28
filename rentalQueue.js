@@ -4,7 +4,6 @@ const moment = require('moment-timezone');
 const Rent = require('./models/Rent');
 const rentalQueue = new Queue('rentalQueue', process.env.REDIS_URL);
 
-console.log('Initializing rentalQueue');
 
 const callLockApi = async (rentalId) => {
   try {
@@ -124,7 +123,9 @@ rentalQueue.on('completed', async (job, result) => {
 
 rentalQueue.on('failed', async (job, error) => {
   const { userId } = job.data;
-  console.error(`Job ${job.id} failed with error:`, error);
+  // remove the job from the queue
+  console.log(`Removing job ${job.id} from the queue`);
+  
 
   if (userId) {
     try {

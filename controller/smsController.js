@@ -12,25 +12,25 @@ const sendSMS = require('../utiliz/smsUtils');
                 
 exports.SendNotification = async (req, res) => {
 
-
-
     try {
         const { rentalId, formattedStartTime, formattedEndTime } = req.body;
         console.log('Rental ID:', rentalId);
         console.log('Start Time:', formattedStartTime);
         console.log('End Time:', formattedEndTime);
         
-
         
-  const smsfrm = smsFormatterUtils({
+  const smsfrm =  smsFormatterUtils({
     type:"createRent",
     phoneNumber:rentalId,
     startTime: formattedStartTime,
     endTime: formattedEndTime,
   });
- console.log('smsfrm:', smsfrm);
-  const smsResponse = await sendSMS({mobile:smsfrm.formattedPhone, message:smsfrm.message, senderid:"Danab Power Bank"});
-console.log(smsResponse)
+ console.log('smsfrm here:', smsfrm.formattedPhone);
+ const mobile = smsfrm.formattedPhone;
+    const message = smsfrm.message;
+    const senderid = 'Danab Power Bank';
+  const smsResponse = await sendSMS(mobile, message, senderid);
+//console.log(smsResponse)
 
        // const smsResponse = await sendSMS(mobile, message, senderid);
         console.log('SMS Response:', smsResponse);

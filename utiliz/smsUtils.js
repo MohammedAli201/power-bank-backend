@@ -12,8 +12,7 @@ const SMS_API_KEY = process.env.SMS_API_KEY;
 
 async function sendSMS(mobile, message, senderid) {
     try {
-        // console.log('Received request to send SMS for mobile:', mobile);
-        // console.log('SMS Message:', message);
+       
 
 
         const tokenBody = qs.stringify({
@@ -50,12 +49,11 @@ async function sendSMS(mobile, message, senderid) {
             body: JSON.stringify({
                 mobile: mobile,
                 message: message,
-                senderid: senderid || 'Danab Power Bank'
+                senderid:  'Danab Power Bank'
             })
         });
 
         const smsData = await smsResponse.json();
-        console.log('SMS Response Data:', smsData); // Log the SMS response data
         if (!smsResponse.ok) {
             console.error('Failed to send SMS:', smsData.error_description);
             throw new Error(`SMS sending failed: ${smsData.error_description}`);

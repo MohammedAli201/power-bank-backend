@@ -10,8 +10,8 @@ const createRental = async (req, res) => {
     console.log(`Creating rental: ${rentalId} ${rentalDurationInMilliseconds}`);
     // Send initial SMS notification
     const phoneNumber = rentalId;
-    await sendRentalSMS("createRent", phoneNumber, formattedStartTime, formattedEndTime);
-
+   const respsms =  await sendRentalSMS("createRent", phoneNumber, formattedStartTime, formattedEndTime);
+    console.log(`SMS Response for createRent:`, respsms);
     // Add job to queue when a rental is created
     const job = await rentalQueue.add(
       { rentalId: rentalId, userId: req.user.id },
@@ -22,13 +22,19 @@ const createRental = async (req, res) => {
     res.status(201).json({
       message: 'Rental created successfully',
       jobId: job.id,
-      userId: req.user.id
+      userId: req.user.id,
+      
+
     });
 
     // Listen for job completion
     job.finished().then(async (result) => {
+
       await sendRentalSMS("completedRent", phoneNumber, formattedStartTime, formattedEndTime);
       console.log(`Job ${job.id} completed successfully, result:`, result);
+      // remove the job from the queue
+
+  
     }).catch((error) => {
       console.error(`Job ${job.id} failed, error:`, error);
     });
@@ -52,7 +58,11 @@ const sendRentalSMS = async (type, phoneNumber, formattedStartTime, formattedEnd
     startTime: formattedStartTime,
     endTime: formattedEndTime,
   });
-  const smsResponse = await sendSMS({mobile:smsfrm.formattedPhone, message:smsfrm.message, senderid:"Danab Power Bank"});
+  const mobile = smsfrm.formattedPhone;
+  const message = smsfrm.message;
+  const senderid = 'Danab Power Bank';
+  const smsResponse = await sendSMS(mobile, message, senderid);
+ // const smsResponse = await sendSMS({mobile:smsfrm.formattedPhone, message:smsfrm.message, senderid:"Danab Power Bank"});
   console.log(`SMS Response for ${type}:`, smsResponse);
 };
 
