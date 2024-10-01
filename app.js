@@ -11,6 +11,8 @@ const { Server } = require("socket.io");
 
 // Import routers
 const paymentRouter = require('./router/PaymentRouter');
+const globalErrorHandler = require('./controller/ErrorController');
+const AppError = require('./utiliz/AppError');
 const powerBankRouter = require('./router/PowerBankRouter');
 const videoPlayerRouter = require('./router/videoRouter');
 const userRouter = require('./router/userRouter');
@@ -96,22 +98,14 @@ app.get('/', (req, res) => {
   
 // Middleware to handle undefined routes
 app.all('*', (req, res, next) => {
-    res.status(404).json({
-        status: 'fail',
-        message: `Can't find ${req.originalUrl} on this server!`
-    });
-    next();
+
+    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+  
 });
 
 // Global error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack); // Logs error stack trace for debugging
-    res.status(500).json({
-        status: 'error',
-        message: err.message
-    });
-    next();
-});
+app.use(globalErrorHandler);
+
 
 // WebSocket connection handling
 io.on('connection', (socket) => {
