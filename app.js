@@ -75,12 +75,14 @@ app.use(cookieParser());
 
 // Set trust proxy configuration (choose one option)
 app.set('trust proxy', 1); // Trust the first proxy
+app.use(globalErrorHandler);
 
 // Middleware to log the request time
-app.use((req, res, next) => {
-    req.requestTime = new Date().toISOString();
-    next();
-});
+// app.use((req, res, next) => {
+//     req.requestTime = new Date().toISOString();
+//     next();
+// });
+
 
 // Route handlers
 app.use('/api/v1/stations', powerBankRouter);
@@ -89,6 +91,8 @@ app.use('/api/v1/stations/video', videoPlayerRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/rentals', rentalRouter);
 app.use('/api/v1/sms', smsRouter);
+const globalErrorHandler = require('./controller/ErrorController');
+
 
 app.get('/', (req, res) => {
     res.send('Welcome to Danab Power Bank!');
@@ -96,11 +100,9 @@ app.get('/', (req, res) => {
   
 // Middleware to handle undefined routes
 app.all('*', (req, res, next) => {
-    res.status(404).json({
-        status: 'fail',
-        message: `Can't find ${req.originalUrl} on this server!`
-    });
-    next();
+
+    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+  
 });
 
 // Global error handling middleware
