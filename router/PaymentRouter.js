@@ -7,9 +7,9 @@ router
   .route('/evc_paymentRequest')
   .post(paymentController.evc_paymentRequest);
 
-// router
-//   .route('/cancelPayment')
-//   .post(paymentController.cancelPayment);
+router
+  .route('/cancelPayment')
+  .post(paymentController.cancelPayment);
 
   // router
   // .route('/savePaymentInfoWithUserInfo')

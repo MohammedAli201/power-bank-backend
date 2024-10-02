@@ -250,7 +250,7 @@ exports.getpowerBankStatusByStationId = async (req, res) => {
 // Standalone function for programmatic use
 async function forceUnlockSlot(stationId, slot_id) {
     const targetUrl = `${URL}${stationId}/forceUnlock`;
-    console.log('Target URL:', targetUrl);
+    console.log('stationId:', targetUrl);
 
     const formData = new URLSearchParams({ slot_id }).toString();
     console.log('Form Data:', formData);    
@@ -262,6 +262,8 @@ async function forceUnlockSlot(stationId, slot_id) {
         },
         body: formData
     };
+
+    console.log('API Service Request:', targetUrl, options);
 
     const response = await fetch(targetUrl, options);
 
@@ -275,6 +277,8 @@ async function forceUnlockSlot(stationId, slot_id) {
             const errorData = await response.json();
             return {
                 unlock : false,
+                error: `Unlocking failed: ${errorData.message || response.statusText || 'Bad Request'}`,
+                
             };
         }
         console.error('API Service Error from unlock router:', errorType);
@@ -306,6 +310,8 @@ async function forceUnlockSlot(stationId, slot_id) {
 exports.forUnclockSlotsById = async (req, res) => {
     const { stationId } = req.params;
     const { slot_id } = req.body;
+    console.log('Station ID:', stationId);
+    console.log('Slot ID:', slot_id);
 
     try {
         const result = await forceUnlockSlot(stationId, slot_id);

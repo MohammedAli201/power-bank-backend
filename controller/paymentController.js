@@ -1,9 +1,9 @@
-const Payment = require('../models/paymentModel'); // Import the Payment model
-const Rent = require('../models/Rent');
 
+const Payment = require('../models/paymentModel');
+const Rent = require('../models/Rent');
 const { forceUnlockSlot } = require('./powerBankController'); // Import your function
 const { savePaymentInfoWithUserInfo } = require('../utiliz/paymentUtils'); // Import the save payment function
-const { preAuthorize, preAuthorizeCommit } = require('../utiliz/WafiPay');
+const { preAuthorize, preAuthorizeCommit, preAuthorizeCancel } = require('../utiliz/WafiPay');
 const moment = require('moment-timezone');
 const { createPaymentData, createRentData } = require('../utiliz/dataFactory');
 
@@ -93,7 +93,31 @@ const catchAsync = fn => (req, res, next) => {
 exports.evc_paymentRequest = catchAsync(async (req, res, next) => {
   console.log('Received request for evc_paymentRequest:', req.body);
 
-  const { accountNo, amount, currency, description, stationId, slot_id } = req.body;
+  const {
+    stationName,
+    userId,
+    amount,
+    accountNo,
+    hours: hoursPaid,
+    currency,
+    description,
+    branch_name,
+    battery_id,
+    slot_id,
+    timestampEvc,
+    createdAt,
+    isPaid,
+    endRentTime,
+    startTime,
+    millisecondsPaid,
+    paymentStatus,
+    lockStatus,
+    term_and_conditions
+  } = req.body;
+
+
+  
+
 
   if (!accountNo || !amount || !currency || !description) {
     return res.status(400).json({ message: 'Missing required parameters' });
@@ -107,7 +131,7 @@ exports.evc_paymentRequest = catchAsync(async (req, res, next) => {
     currency: currency,
     description: description,
   });
-  console.log('PreAuthorize Result:', preAuthResult);
+  // console.log('PreAuthorize Result:', preAuthResult);
 
   const transactionId = preAuthResult.params?.transactionId;
   if (!transactionId) {
@@ -115,10 +139,12 @@ exports.evc_paymentRequest = catchAsync(async (req, res, next) => {
   }
 
   // Step 2: Force unlock the power bank
+  const stationId = stationName;
   const unlockResult = await forceUnlockSlot(stationId, slot_id);
   console.log('Power bank unlock result:', unlockResult);
+  console.log('Power bank unlock result:', unlockResult.unlock);
 
-  if (!unlockResult.unlocked) {
+  if (unlockResult.unlock == false) {
     // Cancel the payment if the power bank is not unlocked
     await preAuthorizeCancel({
       transactionId: transactionId,
@@ -127,26 +153,74 @@ exports.evc_paymentRequest = catchAsync(async (req, res, next) => {
     return next(new Error('Failed to unlock the power bank'));
   }
 
-  // Step 3: Commit the payment
-  const commitResult = await preAuthorizeCommit({
-    transactionId: transactionId,
-    description: 'committed',
-  });
-  console.log('Commit Result:', commitResult);
 
-  // Step 4: Use the factory functions to create payment and rent data
-  const paymentData = createPaymentData(req.body, transactionId, unlockResult, commitResult);
-  const rentData = createRentData(req.body, paymentData.paymentId);
-  const savePaymentResult = await savePaymentInfoWithUserInfo(paymentData, rentData);
-  console.log('Payment and Rent saved:', savePaymentResult);
 
+
+
+
+
+
+      // Prepare payment data
+      const paymentData = {
+        stationId: req.body.stationName,
+        branch_name: req.body.branch_name,
+        phoneNumber: req.body.phoneNumber,
+        slotId: req.body.slot_id,
+        createdAt: req.body.createdAt,
+        battery_id: req.body.battery_id,
+        evcReference: transactionId,
+        timestampEvc: req.body.timestampEvc,
+        amount: req.body.amount,
+        isPaid: req.body.isPaid,
+        endRentTime: req.body.endRentTime,
+        startTime: req.body.startTime,
+        hoursPaid: req.body.hoursPaid,
+        millisecondsPaid: req.body.millisecondsPaid,
+        currency: req.body.currency,
+        paymentStatus: req.body.paymentStatus,
+        lockStatus: req.body.lockStatus,
+        term_and_conditions: req.body.term_and_conditions,
+      };
+  
+      // Create payment record and await the result
+  
+  
+      console.log('Payment Data before:', paymentData);
+  
+      // Create payment record and await the result
+      const paymentInfo = await Payment.create(paymentData);
+      console.log('Payment Info Saved:', paymentInfo);
+  
+      // Prepare rent data
+      const rentData = {
+        phoneNumber: req.body.phoneNumber,
+        paymentId: paymentInfo._id,
+        createdAt: req.body.createdAt,
+        powerbankId: req.body.stationName, // Assuming powerbankId is the correct field
+        startTime: req.body.startTime,
+        endTime: req.body.endRentTime,
+        status: 'active',
+      };
+  
+      // Create rent record and await the result
+      const rentInfo = await Rent.create(rentData);
+      console.log('Rent Info Saved:', rentInfo);
+
+
+  
+
+      const commitResult = await preAuthorizeCommit({
+        transactionId: transactionId,
+        description: 'committed',
+      });
+    
+ 
+
+ 
   // Step 5: Respond with success and data
   res.status(200).json({
     message: 'Payment request successful, power bank unlocked, and payment committed',
-    unlockResult,
-    paymentInfo: savePaymentResult.paymentInfo,
-    rentInfo: savePaymentResult.rentInfo,
-    commitResult,
+    
   });
 });
 
@@ -326,4 +400,17 @@ console.log(paymentInfo)
 
 
 
+exports.cancelPayment = catchAsync(async (req, res) => {
+  const { transactionId } = req.body;
 
+  if (!transactionId) {
+    return res.status(400).json({ message: 'Missing required parameters' });
+  }
+
+  const cancelResult = await preAuthorizeCancel({
+    transactionId: transactionId,
+    description: 'cancelled',
+  });
+
+  res.status(200).json(cancelResult);
+});
