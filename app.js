@@ -11,6 +11,8 @@ const { Server } = require("socket.io");
 
 // Import routers
 const paymentRouter = require('./router/PaymentRouter');
+const globalErrorHandler = require('./controller/ErrorController');
+
 const powerBankRouter = require('./router/PowerBankRouter');
 const videoPlayerRouter = require('./router/videoRouter');
 const userRouter = require('./router/userRouter');
@@ -91,7 +93,6 @@ app.use('/api/v1/stations/video', videoPlayerRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/rentals', rentalRouter);
 app.use('/api/v1/sms', smsRouter);
-const globalErrorHandler = require('./controller/ErrorController');
 
 
 app.get('/', (req, res) => {
