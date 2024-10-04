@@ -81,7 +81,7 @@ exports.evc_paymentRequest = catchAsync(async (req, res, next) => {
         slotId: req.body.slot_id || 1,
         createdAt: req.body.createdAt,
         battery_id: req.body.battery_id || 1,
-        evcReference: "transactionId",
+        evcReference: transactionId,
         timestampEvc: req.body.timestampEvc || new Date(),
         amount: req.body.amount,
         isPaid: req.body.isPaid,
