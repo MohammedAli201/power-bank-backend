@@ -6,8 +6,7 @@ const compression = require('compression');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
-const http = require('http');
-const { Server } = require("socket.io");
+const path = require('path');
 
 // Import routers
 const paymentRouter = require('./router/PaymentRouter');
@@ -18,17 +17,19 @@ const videoPlayerRouter = require('./router/videoRouter');
 const userRouter = require('./router/userRouter');
 const rentalRouter = require('./router/rentalRoutes');
 const smsRouter = require('./router/smsRoute');
-
 const app = express();
-const server = http.createServer(app); // Create HTTP server using Express app
-const io = new Server(server, {
-    cors: {
-        origin: ["https://danabpowerbank.netlify.app/","https://openapi.heycharge.global/v1/station/", "http://localhost:3000/"], // Allow your frontend origin
-        methods: ["GET", "POST"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-        credentials: true
-    }
-});
+app.use('/robots.txt', (req, res) => {
+    res.sendFile(path.join(__dirname, 'robots.txt'));
+  });
+// const server = http.createServer(app); // Create HTTP server using Express app
+// const io = new Server(server, {
+//     cors: {
+//         origin: ["https://danabpowerbank.netlify.app/","https://openapi.heycharge.global/v1/station/", "http://localhost:3000/"], // Allow your frontend origin
+//         methods: ["GET", "POST"],
+//         allowedHeaders: ["Content-Type", "Authorization"],
+//         credentials: true
+//     }
+// });
 
 app.use(mongoSanitize());
 
@@ -108,9 +109,9 @@ app.use(globalErrorHandler);
 
 
 // WebSocket connection handling
-io.on('connection', (socket) => {
-    const userId = socket.handshake.query.userId; // Assume user ID is sent as query parameter
-    socket.join(userId); // Join room named after user ID
-});
+// io.on('connection', (socket) => {
+//     const userId = socket.handshake.query.userId; // Assume user ID is sent as query parameter
+//     socket.join(userId); // Join room named after user ID
+// });
 
 module.exports = app;
