@@ -85,43 +85,47 @@ const catchAsync = fn => (req, res, next) => {
   
   exports.getReturnPowerBank = catchAsync(async (req, res, next) => {
     const { method, body, headers, params } = req;
-    const { imei, battery_id, slot_id, phoneNumber } = body;
+    console.log('Body:', req.body);
+    // const { imei, battery_id, slot_id } = body;
 
-    const rent = await Rent.findOne({ powerbankId: imei, status: { $in: ["expired", "active"] } });
-    console.log('Rent:', rent); 
+    // const rent = await Rent.findOne({ powerbankId: imei, status: { $in: ["expired", "active"] } });
+    // console.log('Rent:', rent); 
   
-    if (!rent) {
-      return next(new Error("Power bank not returned successfully, resource not found"));
-    }
-    const payment = await Payment.findOne({
-      _id: rent.paymentId, // Ensure this is queried as ObjectId
-      slotId: slot_id,
-      battery_id: battery_id,
-    });
+    // if (!rent) {
+    //   return next(new Error("Power bank not returned successfully, resource not found"));
+    // }
+    // const payment = await Payment.findOne({
+    //   _id: rent.paymentId, // Ensure this is queried as ObjectId
+     
+    // });
     
-    console.log('payment id :', rent.paymentId);
-    console.log('payment:', payment);
+    // console.log('payment id :', rent.paymentId);
+    // console.log('payment:', payment);
   
-    // Update payment status if found
-    if (payment) {
-      payment.status = "inactive";
-      await payment.save();
-    }
+    // // Update payment status if found
+    // if (payment) {
+    //   payment.status = "inactive";
+    //   await payment.save();
+    // }
   
-    // Update rent status
-    rent.status = "returned";
-    rent.lockStatus = 0;
-    await rent.save();
+    // // Update rent status
+    // rent.status = "returned";
+    // rent.lockStatus = 0;
+    // await rent.save();
   
-    // Send SMS to user
-    const sendMess = Message(phoneNumber);
-    const smsResponse = await sendSMS(phoneNumber, sendMess.message, sendMess.senderid);
+    // // Send SMS to user
+    // const sendMess = Message(phoneNumber);
+    // const smsResponse = await sendSMS(phoneNumber, sendMess.message, sendMess.senderid);
   
     return res.json({ 
       message: "Power bank returned successfully",
-      smsResponse: smsResponse
+    
     });
   });
+
+
+
+  
   
 exports.getpowerBankStatusByStationId = async (req, res) => {
     const { method, body, headers, params } = req;

@@ -169,4 +169,15 @@ router
 .post(upload.none(),privateRouter, powerBankController.getReturnPowerBank);
 
 
+router
+.route('/powerBankRouter/returnPowerBank/register')
+.post(upload.none(),privateRouter, powerBankController.getReturnPowerBank);
+
+
+
+router
+.route('/powerBankRouter/returnPowerBank/status')
+.post(upload.none(),privateRouter, powerBankController.getReturnPowerBank);
+
+
 module.exports = router;

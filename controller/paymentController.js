@@ -305,6 +305,10 @@ exports.evc_paymentRequest = catchAsync(async (req, res, next) => {
     description: description,
   });
   console.log('PreAuthorize Result:', preAuthResult);
+  if (!preAuthResult.success) {
+    const error = preAuthResult.params?.description || 'Failed to pre-authorize the payment';
+    return next(new AppError(error, 402));
+  }
 
   const transactionId = preAuthResult.params?.transactionId;
   if (!transactionId) {
